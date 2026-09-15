@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Wargame Counter Creator v0.24</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <div>
+      <h1>Wargame Counter Creator</h1>
+      <div class="brand-line"><span class="starfall-mark" aria-hidden="true">✦</span><span>Starfall Works</span><span class="brand-sep">•</span><span>v0.24</span></div>
+    </div>
+    <div class="header-actions">
+      <button id="newProjectBtn">New</button>
+      <button id="saveProjectBtn">Save Project</button>
+      <button id="exportCsvBtn">Export CSV</button>
+      <label class="file-button">
+        Load Project
+        <input id="loadProjectInput" type="file" accept=".json,application/json">
+      </label>
+      <button id="superiorPodBtn" title="Export the 18 × 12 inch Superior POD 5/8 inch chit sheet format">Superior POD PDF</button>
+      <button id="printBtn" class="primary">Print / PDF</button>
+    </div>
+  </header>
+
+  <main>
+    <nav class="tabs" aria-label="Workspace tabs">
+      <button class="tab active" data-tab="designer">Counter Designer</button>
+      <button class="tab" data-tab="sheet">Sheet Designer</button>
+    </nav>
+
+    <section id="designerTab" class="workspace active">
+      <aside class="panel counter-list-panel">
+        <div class="panel-title-row">
+          <h2>Counters</h2>
+          <button id="addCounterBtn" title="Add counter">+</button>
+        </div>
+        <div id="counterList" class="counter-list"></div>
+        <div class="stack">
+          <button id="duplicateCounterBtn">Duplicate</button>
+          <button id="deleteCounterBtn" class="danger">Delete</button>
+        </div>
+      </aside>
+
+      <section class="designer-center">
+        <div class="preview-toolbar">
+          <label>Zoom
+            <select id="zoomSelect">
+              <option value="4">400%</option>
+              <option value="6" selected>600%</option>
+              <option value="8">800%</option>
+              <option value="10">1000%</option>
+            </select>
+          </label>
+          <label class="check"><input id="showGuidesCheck" type="checkbox" checked> Show guides</label>
+        </div>
+        <div class="counter-stage">
+          <div id="counterPreview" class="counter-preview" aria-label="Counter preview"></div>
+        </div>
+        <p class="hint">Dashed inner line = safe area. Outer halo = bleed area. The solid border is the cut edge.</p>
+      </section>
+
+      <aside class="panel properties-panel">
+        <h2>Properties</h2>
+
+        <div class="form-grid">
+          <label class="check two-sided-toggle">
+            <input id="twoSidedCheck" type="checkbox"> Two-sided counter
+          </label>
+
+          <div id="sideEditorControls" class="side-editor-controls" hidden>
+            <div class="side-toggle" role="group" aria-label="Counter side">
+              <button id="editFrontBtn" type="button" class="active">Front</button>
+              <button id="editBackBtn" type="button">Back</button>
+            </div>
+            <button id="copyFrontToBackBtn" type="button">Copy Front to Back</button>
+          </div>
+
+          <label>Template
+            <select id="templateSelect">
+              <option value="classic" selected>Classic</option>
+              <option value="sixValue">Six-Value</option>
+              <option value="information">Information</option>
+            </select>
+          </label>
+
+          <label>Counter size
+            <select id="sizePreset">
+              <option value="0.5">1/2 inch</option>
+              <option value="0.625" selected>5/8 inch</option>
+              <option value="0.75">3/4 inch</option>
+              <option value="1">1 inch</option>
+            </select>
+          </label>
+
+          <label>Quantity
+            <input id="quantityValue" type="number" min="1" max="999" step="1" value="1">
+          </label>
+
+          <label>Background
+            <input id="bgColor" type="color" value="#d7d1a8">
+          </label>
+
+          <label>Background stripe
+            <select id="stripeOrientation">
+              <option value="none" selected>None</option>
+              <option value="vertical">Vertical</option>
+              <option value="horizontal">Horizontal</option>
+            </select>
+          </label>
+
+          <label>Stripe position
+            <select id="stripePosition">
+              <option value="center" selected>Center</option>
+              <option value="start">Left / Top</option>
+              <option value="end">Right / Bottom</option>
+            </select>
+          </label>
+
+          <label>Stripe color
+            <input id="stripeColor" type="color" value="#ffffff">
+          </label>
+
+          <label>Border
+            <input id="borderColor" type="color" value="#111111">
+          </label>
+
+          <label>Text
+            <input id="textColor" type="color" value="#111111">
+          </label>
+
+          <label>Label font size (%)
+            <input id="labelTextScale" type="number" min="50" max="200" step="5" value="100">
+          </label>
+
+          <label>Number font size (%)
+            <input id="numberTextScale" type="number" min="50" max="200" step="5" value="100">
+          </label>
+
+          <label>Unit name
+            <input id="unitName" type="text" maxlength="30" value="1/506 PIR">
+          </label>
+
+          <label class="non-info-only">Unit type
+            <input id="unitType" type="text" maxlength="20" value="INF">
+          </label>
+
+          <label class="info-only">Information text
+            <textarea id="infoText" rows="4" maxlength="120" placeholder="Turn 3&#10;Victory Point&#10;Weather: Rain"></textarea>
+          </label>
+
+          <label>Silhouette
+            <select id="symbolSelect">
+              <option value="">None</option>
+              <option value="infantry">Infantry</option>
+              <option value="tank">Tank</option>
+              <option value="artillery">Artillery</option>
+              <option value="truck">Truck</option>
+              <option value="fighter">Fighter</option>
+              <option value="bomber">Bomber</option>
+              <option value="destroyer">Destroyer</option>
+              <option value="cruiser">Cruiser</option>
+              <option value="battleship">Battleship</option>
+              <option value="carrier">Carrier</option>
+              <option value="submarine">Submarine</option>
+              <option value="helicopter">Helicopter</option>
+            </select>
+          </label>
+
+          <label>Imported symbol
+            <select id="customSymbolSelect">
+              <option value="">None</option>
+            </select>
+          </label>
+
+          <label class="file-button symbol-import-button">
+            Import Symbol
+            <input id="symbolImportInput" type="file" accept=".png,.jpg,.jpeg,.svg,image/png,image/jpeg,image/svg+xml">
+          </label>
+
+          <button id="removeSymbolBtn" type="button">Remove Imported Symbol</button>
+
+          <label class="six-only non-info-only">Top left
+            <input id="topLeftValue" type="text" maxlength="4" value="">
+          </label>
+          <label class="six-only non-info-only">Top right
+            <input id="topRightValue" type="text" maxlength="4" value="">
+          </label>
+
+          <label class="non-info-only">Attack / Bottom left
+            <input id="attackValue" type="text" maxlength="4" value="5">
+          </label>
+          <label class="non-info-only">Defense / Bottom center
+            <input id="defenseValue" type="text" maxlength="4" value="4">
+          </label>
+          <label class="non-info-only">Movement / Bottom right
+            <input id="moveValue" type="text" maxlength="4" value="6">
+          </label>
+
+          <label>Bleed
+            <select id="bleedSelect">
+              <option value="0">None</option>
+              <option value="0.03125">1/32 inch</option>
+              <option value="0.0625" selected>1/16 inch</option>
+              <option value="0.125">1/8 inch</option>
+            </select>
+          </label>
+
+          <label>Safe inset
+            <select id="safeInsetSelect">
+              <option value="0.025">0.025 inch</option>
+              <option value="0.04" selected>0.040 inch</option>
+              <option value="0.0625">1/16 inch</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="number-style-section non-info-only">
+          <h3>Number Styling</h3>
+          <div class="number-style-grid">
+            <div class="number-style-card six-only">
+              <div class="number-style-title">Top Left</div>
+              <label>Text color
+                <input id="topLeftColor" type="color" value="#111111">
+              </label>
+              <label class="check"><input id="topLeftHighlight" type="checkbox"> Highlight</label>
+              <label>Highlight color
+                <input id="topLeftHighlightColor" type="color" value="#fff59d">
+              </label>
+            </div>
+
+            <div class="number-style-card six-only">
+              <div class="number-style-title">Top Right</div>
+              <label>Text color
+                <input id="topRightColor" type="color" value="#111111">
+              </label>
+              <label class="check"><input id="topRightHighlight" type="checkbox"> Highlight</label>
+              <label>Highlight color
+                <input id="topRightHighlightColor" type="color" value="#fff59d">
+              </label>
+            </div>
+
+            <div class="number-style-card">
+              <div class="number-style-title">Bottom Left</div>
+              <label>Text color
+                <input id="attackColor" type="color" value="#111111">
+              </label>
+              <label class="check"><input id="attackHighlight" type="checkbox"> Highlight</label>
+              <label>Highlight color
+                <input id="attackHighlightColor" type="color" value="#fff59d">
+              </label>
+            </div>
+
+            <div class="number-style-card">
+              <div class="number-style-title">Bottom Center</div>
+              <label>Text color
+                <input id="defenseColor" type="color" value="#111111">
+              </label>
+              <label class="check"><input id="defenseHighlight" type="checkbox"> Highlight</label>
+              <label>Highlight color
+                <input id="defenseHighlightColor" type="color" value="#fff59d">
+              </label>
+            </div>
+
+            <div class="number-style-card">
+              <div class="number-style-title">Bottom Right</div>
+              <label>Text color
+                <input id="moveColor" type="color" value="#111111">
+              </label>
+              <label class="check"><input id="moveHighlight" type="checkbox"> Highlight</label>
+              <label>Highlight color
+                <input id="moveHighlightColor" type="color" value="#fff59d">
+              </label>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="sheetTab" class="workspace">
+      <aside class="panel sheet-controls">
+        <h2>Sheet Setup</h2>
+        <div class="form-grid">
+          <label>Paper
+            <select id="paperSize">
+              <option value="letter" selected>US Letter</option>
+              <option value="a4">A4</option>
+            </select>
+          </label>
+          <label>Orientation
+            <select id="orientation">
+              <option value="portrait" selected>Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </label>
+          <label>Margin
+            <select id="marginSelect">
+              <option value="0.25">0.25 inch</option>
+              <option value="0.375" selected>0.375 inch</option>
+              <option value="0.5">0.50 inch</option>
+            </select>
+          </label>
+          <label>Gutter
+            <select id="gutterSelect">
+              <option value="0">None</option>
+              <option value="0.03125">1/32 inch</option>
+              <option value="0.0625" selected>1/16 inch</option>
+              <option value="0.125">1/8 inch</option>
+            </select>
+          </label>
+          <label class="check"><input id="cropMarksCheck" type="checkbox" checked> Crop marks</label>
+          <label class="check"><input id="sheetGuidesCheck" type="checkbox" checked> Bleed guides</label>
+          <label>Superior POD back
+            <select id="superiorBackMode">
+              <option value="blank" selected>Automatic backs</option>
+              <option value="repeat">Repeat fronts (mirrored)</option>
+            </select>
+          </label>
+
+          <label>Superior POD layout
+            <select id="superiorLayoutMode">
+              <option value="auto" selected>Automatic counter order</option>
+              <option value="manual">Manual slot layout</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="summary-box">
+          <div><strong id="sheetCounterCount">0</strong> counters</div>
+          <div><strong id="sheetCapacity">0</strong> per page</div>
+          <div><strong id="sheetPageCount">1</strong> page(s)</div>
+        </div>
+        <button id="refreshSheetBtn">Refresh Layout</button>
+      </aside>
+
+      <section class="sheet-preview-wrap">
+        <div id="podLayoutPlanner" class="pod-layout-planner" hidden>
+          <div class="pod-planner-header">
+            <div>
+              <h2>Superior POD Slot Planner</h2>
+              <p>Assign front counters to the manufacturer's exact slots. Back sides are paired and mirrored automatically.</p>
+            </div>
+            <div class="pod-page-nav">
+              <button id="podPrevPageBtn" type="button">◀</button>
+              <span id="podPageLabel">Sheet 1 of 1</span>
+              <button id="podNextPageBtn" type="button">▶</button>
+            </div>
+          </div>
+
+          <div class="pod-planner-actions">
+            <button id="podSeedOrderBtn" type="button">Fill from Counter Order</button>
+            <button id="podSeedColorBtn" type="button">Group by Color</button>
+            <button id="podAddPageBtn" type="button">Add POD Sheet</button>
+            <button id="podClearPageBtn" type="button">Clear This Sheet</button>
+            <button id="podRemovePageBtn" type="button">Remove This Sheet</button>
+          </div>
+
+          <div id="podUsageSummary" class="pod-usage-summary"></div>
+
+          <div class="pod-slot-editor">
+            <div>
+              <strong id="podSelectedSlotLabel">Selected slot: 1</strong>
+              <span class="pod-slot-editor-help">Click a front position on the sheet, then choose its counter here.</span>
+            </div>
+            <select id="podSelectedSlotCounter"></select>
+            <button id="podClearSelectedSlotBtn" type="button">Clear Slot</button>
+          </div>
+
+          <div class="pod-exact-sheet-wrap">
+            <div id="podExactSheet" class="pod-exact-sheet" aria-label="Exact Superior POD press-sheet layout">
+              <div class="pod-sheet-label pod-front-label">FRONTS</div>
+              <div class="pod-sheet-label pod-back-label">LINKED BACKS</div>
+            </div>
+          </div>
+
+          <div class="pod-planner-note">
+            This workspace uses the same coordinates as the Superior POD PDF. Front slots are editable. The linked back for each two-sided counter is shown in its exact mirrored position on the right.
+          </div>
+        </div>
+        <div id="sheetPreview" class="sheet-preview"></div>
+      </section>
+    </section>
+  </main>
+
+  <footer class="app-footer"><span class="starfall-mark" aria-hidden="true">✦</span> Wargame Counter Creator is a Starfall Works product.</footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
