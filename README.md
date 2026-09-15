@@ -5,14 +5,6 @@
 
 Wargame Counter Creator is a Starfall Works product. Version 0.8 adds subtle Starfall Works branding to the header and footer.
 
-## Monetization / Ads
-
-The downloadable version is intentionally ad-free. Google AdSense should not be embedded in a packaged/local software application. If a hosted web edition is created, advertising can be added to the surrounding website after the site is approved by the ad provider and applicable privacy/consent requirements are implemented.
-
-For a non-intrusive layout, use one clearly separated banner area above the application workspace or place sponsorship on landing/help pages. Keep ads well away from Save, Export, Import, Print and other high-interaction controls.
-
-A local browser-based tool for creating traditional hex-and-counter wargame counters and laying them out on printable sheets.
-
 ## Run
 
 1. Extract the ZIP.
