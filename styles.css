@@ -932,3 +932,9 @@ body.template-information .non-info-only { display:none !important; }
   text-align:center;
   font-variant-numeric:tabular-nums;
 }
+
+
+/* v0.25 dedicated general PDF export */
+#generalPdfBtn {
+  font-weight:700;
+}

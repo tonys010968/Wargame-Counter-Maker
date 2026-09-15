@@ -1,4 +1,4 @@
-# Wargame Counter Creator v0.24
+# Wargame Counter Creator v0.29
 
 
 ## Starfall Works
@@ -11,7 +11,7 @@ Wargame Counter Creator is a Starfall Works product. Version 0.8 adds subtle Sta
 2. Open `index.html` in Chrome, Edge, Firefox, or Safari.
 3. No server or installation is required.
 
-## Included in v0.24
+## Included in v0.29
 
 - Counter templates:
   - Classic: name, unit type, centered symbol and three bottom values
@@ -255,3 +255,60 @@ Manual layout features:
 - Six-Value top-left and top-right values use symmetric fixed boxes.
 - Highlight pills remain centered around the number.
 - Tabular numerals improve visual consistency for multi-digit values.
+
+
+## v0.25 general double-sided PDF export
+
+- Added a dedicated **General Double-Sided PDF** exporter.
+- It creates a PDF directly rather than opening the browser print dialog.
+- It honors Letter/A4, portrait/landscape, margin and gutter settings.
+- Counters are placed in current counter-list order, with quantities expanded.
+- Each front page is followed immediately by its matching back page.
+- Back positions are horizontally mirrored for duplex registration.
+- True two-sided counters use their designed back artwork.
+- One-sided counters use the same background, stripe and border treatment with text, symbols and values removed.
+- Mixed counter sizes are supported.
+- The old browser-driven print function remains available as **Browser Print / PDF**.
+- Superior POD export remains unchanged and continues to use the manufacturer-specific layout.
+
+
+## v0.26 general PDF physical-size correction
+
+- Fixed General Double-Sided PDF counters rendering larger than their specified physical size.
+- General PDF artwork is now drawn directly at `counter size in inches × 300 DPI`.
+- A 5/8 inch counter is therefore rendered at exactly 187.5 pixels on the 300 DPI PDF canvas.
+- Removed the dependency on the Superior POD counter-size scaling path for general PDF artwork.
+- Letter/A4 page geometry, margins, gutters and duplex mirroring remain unchanged.
+- Counter text, symbols, stripes, borders and font scaling are rendered proportionally inside the true finished size.
+
+
+## v0.27 true physical PDF sizing
+
+- Fixed the underlying PDF page-size bug in direct PDF generation.
+- The 300 DPI JPEG raster dimensions are now kept separate from the PDF's physical page dimensions.
+- PDF pages use the PDF standard of **72 points per inch**.
+- Letter pages are written as exactly 612 x 792 PDF points in portrait.
+- A4 pages use their exact physical dimensions in PDF points.
+- A 5/8 inch counter therefore occupies exactly **45 PDF points** on the finished page.
+- The General Double-Sided PDF can now be printed at **100% / Actual Size** without counter enlargement caused by pixel-to-point confusion.
+- Superior POD PDFs also explicitly use their true 18 x 12 inch PDF page dimensions.
+
+
+## v0.28 PDF export regression fix
+
+- Restored the missing `canvasToJpegBytes()` helper used by both direct PDF exporters.
+- Verified the General Double-Sided PDF exporter calls the helper correctly.
+- Verified the Superior POD PDF exporter calls the same helper correctly.
+- Preserved the v0.27 physical sizing correction: raster resolution remains 300 DPI while PDF page size remains true physical size at 72 points per inch.
+- Added a defensive error if the browser cannot convert a canvas page to JPEG.
+
+
+## v0.29 PDF text-boundary correction
+
+- General Double-Sided PDF artwork is now hard-clipped to the finished counter square.
+- Text, symbols, highlights and stripes cannot draw outside the counter boundary.
+- Unit names and unit types automatically reduce only when their requested font size would exceed the available text band.
+- Six-Value names use the same fit-to-band behavior.
+- Numeric values retain the requested Number Font Size when possible, but reduce only when needed to fit their individual stat position.
+- Counter borders are drawn after clipping so the finished edge remains crisp and visible.
+- Physical counter sizing from v0.27/v0.28 remains unchanged.

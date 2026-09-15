@@ -1519,30 +1519,417 @@
 
   function asciiBytes(s) { return new TextEncoder().encode(s); }
 
-  function buildJpegPdf(jpegs, imgW, imgH) {
-    const objects=[]; const pageRefs=[]; const contentRefs=[]; const imageRefs=[];
-    let objNum=3;
-    for (let i=0;i<jpegs.length;i++) { pageRefs.push(objNum++); imageRefs.push(objNum++); contentRefs.push(objNum++); }
-    objects[1]=asciiBytes(`<< /Type /Catalog /Pages 2 0 R >>`);
-    objects[2]=asciiBytes(`<< /Type /Pages /Kids [${pageRefs.map(n=>`${n} 0 R`).join(" ")}] /Count ${pageRefs.length} >>`);
-    for (let i=0;i<jpegs.length;i++) {
-      const p=pageRefs[i], im=imageRefs[i], ct=contentRefs[i];
-      objects[p]=asciiBytes(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${SUPERIOR_POD.pageWidthPt} ${SUPERIOR_POD.pageHeightPt}] /Resources << /XObject << /Im0 ${im} 0 R >> >> /Contents ${ct} 0 R >>`);
-      objects[im]=binaryConcat([asciiBytes(`<< /Type /XObject /Subtype /Image /Width ${imgW} /Height ${imgH} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpegs[i].length} >>\nstream\n`),jpegs[i],asciiBytes(`\nendstream`)]);
-      const stream=`q\n${SUPERIOR_POD.pageWidthPt} 0 0 ${SUPERIOR_POD.pageHeightPt} 0 0 cm\n/Im0 Do\nQ\n`;
-      objects[ct]=asciiBytes(`<< /Length ${stream.length} >>\nstream\n${stream}endstream`);
-    }
-    const chunks=[asciiBytes("%PDF-1.4\n%\xE2\xE3\xCF\xD3\n")]; const offsets=[0]; let length=chunks[0].length;
-    for (let n=1;n<objects.length;n++) { if (!objects[n]) continue; offsets[n]=length; const head=asciiBytes(`${n} 0 obj\n`), tail=asciiBytes(`\nendobj\n`); chunks.push(head,objects[n],tail); length+=head.length+objects[n].length+tail.length; }
-    const xrefOffset=length; const max=objects.length-1; let xref=`xref\n0 ${max+1}\n0000000000 65535 f \n`;
-    for (let n=1;n<=max;n++) xref += `${String(offsets[n]||0).padStart(10,"0")} 00000 n \n`;
-    xref += `trailer\n<< /Size ${max+1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`;
-    chunks.push(asciiBytes(xref)); return binaryConcat(chunks);
+  function canvasToJpegBytes(canvas, quality=0.92) {
+    return new Promise((resolve, reject) => {
+      canvas.toBlob(async blob => {
+        if (!blob) {
+          reject(new Error("Could not convert the PDF page canvas to JPEG."));
+          return;
+        }
+        try {
+          const buffer = await blob.arrayBuffer();
+          resolve(new Uint8Array(buffer));
+        } catch (err) {
+          reject(err);
+        }
+      }, "image/jpeg", quality);
+    });
   }
 
-  async function canvasToJpegBytes(canvas, quality=.96) {
-    const blob=await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",quality));
-    return new Uint8Array(await blob.arrayBuffer());
+  function buildJpegPdf(jpegs, imageWidthPx, imageHeightPx, pageWidthPt=imageWidthPx, pageHeightPt=imageHeightPx) {
+    // imageWidthPx/imageHeightPx describe the JPEG raster.
+    // pageWidthPt/pageHeightPt describe the physical PDF page.
+    // Keeping these separate is essential: PDF points are 1/72 inch, not pixels.
+    const enc = new TextEncoder();
+    const chunks = [];
+    const offsets = [0];
+    let bytePos = 0;
+
+    function pushText(text) {
+      const bytes = enc.encode(text);
+      chunks.push(bytes);
+      bytePos += bytes.length;
+    }
+
+    function pushBytes(bytes) {
+      chunks.push(bytes);
+      bytePos += bytes.length;
+    }
+
+    function addObj(objNum, bodyParts) {
+      offsets[objNum] = bytePos;
+      pushText(`${objNum} 0 obj\n`);
+      for (const part of bodyParts) {
+        if (typeof part === "string") pushText(part);
+        else pushBytes(part);
+      }
+      pushText("\nendobj\n");
+    }
+
+    pushText("%PDF-1.4\n");
+
+    const pageCount = jpegs.length;
+    const catalogObj = 1;
+    const pagesObj = 2;
+    let nextObj = 3;
+
+    const pageObjs = [];
+    const imageObjs = [];
+    const contentObjs = [];
+
+    for (let i=0; i<pageCount; i++) {
+      pageObjs.push(nextObj++);
+      imageObjs.push(nextObj++);
+      contentObjs.push(nextObj++);
+    }
+
+    addObj(catalogObj, [`<< /Type /Catalog /Pages ${pagesObj} 0 R >>`]);
+
+    addObj(pagesObj, [
+      `<< /Type /Pages /Count ${pageCount} /Kids [${pageObjs.map(n => `${n} 0 R`).join(" ")}] >>`
+    ]);
+
+    for (let i=0; i<pageCount; i++) {
+      const imgObj = imageObjs[i];
+      const contentObj = contentObjs[i];
+      const pageObj = pageObjs[i];
+      const jpeg = jpegs[i];
+
+      addObj(imgObj, [
+        `<< /Type /XObject /Subtype /Image /Width ${imageWidthPx} /Height ${imageHeightPx} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`,
+        jpeg,
+        "\nendstream"
+      ]);
+
+      const content = `q\n${pageWidthPt} 0 0 ${pageHeightPt} 0 0 cm\n/Im0 Do\nQ\n`;
+      const contentBytes = enc.encode(content);
+      addObj(contentObj, [
+        `<< /Length ${contentBytes.length} >>\nstream\n`,
+        contentBytes,
+        "\nendstream"
+      ]);
+
+      addObj(pageObj, [
+        `<< /Type /Page /Parent ${pagesObj} 0 R /MediaBox [0 0 ${pageWidthPt} ${pageHeightPt}] `,
+        `/Resources << /XObject << /Im0 ${imgObj} 0 R >> >> /Contents ${contentObj} 0 R >>`
+      ]);
+    }
+
+    const xrefPos = bytePos;
+    pushText(`xref\n0 ${nextObj}\n`);
+    pushText("0000000000 65535 f \n");
+    for (let i=1; i<nextObj; i++) {
+      pushText(`${String(offsets[i] || 0).padStart(10,"0")} 00000 n \n`);
+    }
+    pushText(`trailer\n<< /Size ${nextObj} /Root ${catalogObj} 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
+
+    return binaryConcat(chunks);
+  }
+
+
+  function generalPdfPaperPoints() {
+    const paper = state.sheet.paper || "letter";
+    const orientation = state.sheet.orientation || "portrait";
+    let wIn = paper === "a4" ? 8.2677165354 : 8.5;
+    let hIn = paper === "a4" ? 11.6929133858 : 11;
+    if (orientation === "landscape") [wIn, hIn] = [hIn, wIn];
+    return {wIn, hIn, wPt:wIn*72, hPt:hIn*72};
+  }
+
+  function generalPdfPlacements(counters) {
+    const paper = generalPdfPaperPoints();
+    const margin = Math.max(0, Number(state.sheet.margin) || 0);
+    const gutter = Math.max(0, Number(state.sheet.gutter) || 0);
+    const pages = [];
+    let page = [];
+    let x = margin;
+    let y = margin;
+    let rowHeight = 0;
+
+    for (const c of counters) {
+      const size = Math.max(0.1, Number(c.size) || 0.625);
+
+      if (x + size > paper.wIn - margin + 1e-6) {
+        x = margin;
+        y += rowHeight + gutter;
+        rowHeight = 0;
+      }
+
+      if (y + size > paper.hIn - margin + 1e-6) {
+        pages.push(page);
+        page = [];
+        x = margin;
+        y = margin;
+        rowHeight = 0;
+      }
+
+      page.push({counter:c, xIn:x, yIn:y, sizeIn:size});
+      x += size + gutter;
+      rowHeight = Math.max(rowHeight, size);
+    }
+
+    if (page.length || !pages.length) pages.push(page);
+    return {paper, pages};
+  }
+
+  function generalBackCounter(c) {
+    if (c.twoSided && c.back) return sideForExport(c, "back");
+    return {
+      ...c,
+      name:"",
+      type:"",
+      infoText:"",
+      topLeft:"",
+      topRight:"",
+      attack:"",
+      defense:"",
+      move:"",
+      symbol:"none",
+      customSymbolId:""
+    };
+  }
+
+  async function drawGenericCounter(ctx, c, xPx, yPx, sizePx, dpi) {
+    const size = sizePx;
+    const textColor = c.text || "#111111";
+    const labelScale = Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)) / 100;
+    const numberScale = Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)) / 100;
+    const template = c.template || "classic";
+
+    ctx.save();
+
+    // Hard clip: no text, symbol, stripe, highlight or other artwork may extend
+    // beyond the finished counter square.
+    ctx.beginPath();
+    ctx.rect(xPx, yPx, size, size);
+    ctx.clip();
+
+    // Background and stripe.
+    ctx.fillStyle = c.bg || "#ffffff";
+    ctx.fillRect(xPx, yPx, size, size);
+    drawCounterStripe(ctx, c, xPx, yPx, size);
+
+    const symbol = await canvasSymbolImage(c);
+
+    function drawSymbol(cx, cy, maxW, maxH) {
+      if (!symbol) return;
+      const ratio = Math.min(maxW / symbol.width, maxH / symbol.height);
+      const w = symbol.width * ratio;
+      const h = symbol.height * ratio;
+      ctx.drawImage(symbol, cx - w/2, cy - h/2, w, h);
+    }
+
+    function fittedFontPx(text, desiredPx, maxWidth, weight="700", minPx=4) {
+      const str = String(text ?? "");
+      let px = Math.max(minPx, desiredPx);
+      ctx.font = `${weight} ${px}px Arial, sans-serif`;
+      let width = ctx.measureText(str).width;
+      if (width <= maxWidth || width <= 0) return px;
+
+      px = Math.max(minPx, px * (maxWidth / width));
+      ctx.font = `${weight} ${px}px Arial, sans-serif`;
+
+      // One extra pass handles rounding/font metric differences.
+      width = ctx.measureText(str).width;
+      if (width > maxWidth && width > 0) {
+        px = Math.max(minPx, px * (maxWidth / width));
+      }
+      return px;
+    }
+
+    function drawCenteredText(text, cx, cy, desiredPx, maxWidth, weight="700", minPx=4) {
+      if (!text) return;
+      const px = fittedFontPx(text, desiredPx, maxWidth, weight, minPx);
+      ctx.fillStyle = textColor;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `${weight} ${px}px Arial, sans-serif`;
+      ctx.fillText(String(text), cx, cy);
+    }
+
+    function drawStat(text, cx, cy, desiredPx, color, highlight, highlightColor, maxWidth=size*0.25) {
+      if (text == null || text === "") return;
+      ctx.save();
+
+      const str = String(text);
+      const px = fittedFontPx(str, desiredPx, maxWidth, "700", Math.max(4, size*0.055));
+      ctx.font = `700 ${px}px Arial, sans-serif`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      if (highlight) {
+        const m = ctx.measureText(str);
+        const padX = Math.max(2, px * 0.16);
+        const padY = Math.max(1, px * 0.10);
+        const h = px * 1.05;
+        ctx.fillStyle = highlightColor || "#ffff00";
+        ctx.fillRect(
+          cx - m.width/2 - padX,
+          cy - h/2 - padY/2,
+          m.width + padX*2,
+          h + padY
+        );
+      }
+
+      ctx.fillStyle = color || textColor;
+      ctx.fillText(str, cx, cy);
+      ctx.restore();
+    }
+
+    if (template === "information") {
+      if (symbol) drawSymbol(xPx + size*0.5, yPx + size*0.34, size*0.54, size*0.32);
+
+      drawCenteredText(
+        c.infoText || c.name || "",
+        xPx + size*0.5,
+        yPx + size*0.67,
+        Math.max(6, size*0.13*labelScale),
+        size*0.84,
+        "700",
+        Math.max(4, size*0.055)
+      );
+
+    } else if (template === "sixValue") {
+      drawStat(c.topLeft,  xPx + size*0.18, yPx + size*0.13, size*0.12*numberScale, c.topLeftColor, c.topLeftHighlight, c.topLeftHighlightColor, size*0.27);
+      drawStat(c.topRight, xPx + size*0.82, yPx + size*0.13, size*0.12*numberScale, c.topRightColor, c.topRightHighlight, c.topRightHighlightColor, size*0.27);
+
+      if (symbol) drawSymbol(xPx + size*0.5, yPx + size*0.33, size*0.56, size*0.28);
+
+      drawCenteredText(
+        c.name || "",
+        xPx + size*0.5,
+        yPx + size*0.56,
+        Math.max(6, size*0.085*labelScale),
+        size*0.86,
+        "700",
+        Math.max(4, size*0.05)
+      );
+
+      drawStat(c.attack,  xPx + size*0.175, yPx + size*0.86, size*0.14*numberScale, c.attackColor, c.attackHighlight, c.attackHighlightColor, size*0.27);
+      drawStat(c.defense, xPx + size*0.50,  yPx + size*0.86, size*0.14*numberScale, c.defenseColor, c.defenseHighlight, c.defenseHighlightColor, size*0.27);
+      drawStat(c.move,    xPx + size*0.825, yPx + size*0.86, size*0.14*numberScale, c.moveColor, c.moveHighlight, c.moveHighlightColor, size*0.27);
+
+    } else {
+      // Classic/default
+      drawCenteredText(
+        c.name || "",
+        xPx + size*0.5,
+        yPx + size*0.11,
+        Math.max(6, size*0.11*labelScale),
+        size*0.88,
+        "700",
+        Math.max(4, size*0.05)
+      );
+
+      drawCenteredText(
+        c.type || "",
+        xPx + size*0.5,
+        yPx + size*0.22,
+        Math.max(5, size*0.075*labelScale),
+        size*0.86,
+        "600",
+        Math.max(4, size*0.045)
+      );
+
+      if (symbol) drawSymbol(xPx + size*0.5, yPx + size*0.48, size*0.58, size*0.36);
+
+      drawStat(c.attack,  xPx + size*0.175, yPx + size*0.86, size*0.14*numberScale, c.attackColor, c.attackHighlight, c.attackHighlightColor, size*0.27);
+      drawStat(c.defense, xPx + size*0.50,  yPx + size*0.86, size*0.14*numberScale, c.defenseColor, c.defenseHighlight, c.defenseHighlightColor, size*0.27);
+      drawStat(c.move,    xPx + size*0.825, yPx + size*0.86, size*0.14*numberScale, c.moveColor, c.moveHighlight, c.moveHighlightColor, size*0.27);
+    }
+
+    ctx.restore();
+
+    // Border is drawn after restoring the clip so it remains crisp and fully visible.
+    ctx.save();
+    ctx.strokeStyle = c.border || "#111111";
+    ctx.lineWidth = Math.max(1, size * 0.012);
+    ctx.strokeRect(xPx, yPx, size, size);
+    ctx.restore();
+  }
+
+
+  async function exportGeneralDoubleSidedPdf() {
+    const counters = expandedSheetCounters();
+    if (!counters.length) {
+      alert("There are no counters to export.");
+      return;
+    }
+
+    const {paper, pages} = generalPdfPlacements(counters);
+    const dpi = 300;
+    const width = Math.round(paper.wIn * dpi);
+    const height = Math.round(paper.hIn * dpi);
+    const jpegs = [];
+
+    const btn = $("generalPdfBtn");
+    const oldText = btn.textContent;
+    btn.disabled = true;
+
+    try {
+      for (let p=0; p<pages.length; p++) {
+        const placements = pages[p];
+
+        // Front
+        btn.textContent = `General PDF front ${p+1}/${pages.length}...`;
+        let canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        let ctx = canvas.getContext("2d", {alpha:false});
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,width,height);
+
+        for (const item of placements) {
+          // Physical size is explicit: inches × DPI.
+          // Example: 0.625" × 300 DPI = 187.5 px.
+          await drawGenericCounter(
+            ctx,
+            item.counter,
+            item.xIn * dpi,
+            item.yIn * dpi,
+            item.sizeIn * dpi,
+            dpi
+          );
+        }
+        jpegs.push(await canvasToJpegBytes(canvas));
+
+        // Back: horizontally mirrored for duplex registration
+        btn.textContent = `General PDF back ${p+1}/${pages.length}...`;
+        canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        ctx = canvas.getContext("2d", {alpha:false});
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,width,height);
+
+        for (const item of placements) {
+          const s = item.sizeIn * dpi;
+          const frontX = item.xIn * dpi;
+          const x = width - frontX - s;
+          const y = item.yIn * dpi;
+          const back = generalBackCounter(item.counter);
+
+          await drawGenericCounter(ctx, back, x, y, s, dpi);
+        }
+        jpegs.push(await canvasToJpegBytes(canvas));
+      }
+
+      // Raster is 300 DPI, but physical PDF page remains true Letter/A4 size
+      // in 72-point-per-inch PDF coordinates.
+      const pdf = buildJpegPdf(jpegs, width, height, paper.wPt, paper.hPt);
+      const blob = new Blob([pdf], {type:"application/pdf"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = `starfall-counter-sheet-${state.sheet.paper || "letter"}-${state.sheet.orientation || "portrait"}-duplex.pdf`;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1500);
+    } catch (err) {
+      console.error(err);
+      alert("Could not create the general double-sided PDF: " + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = oldText;
+    }
   }
 
   async function exportSuperiorPodPdf() {
@@ -1641,7 +2028,7 @@
         jpegs.push(await canvasToJpegBytes(canvas));
       }
 
-      const pdf=buildJpegPdf(jpegs,width,height);
+      const pdf=buildJpegPdf(jpegs,width,height,SUPERIOR_POD.pageWidthPt,SUPERIOR_POD.pageHeightPt);
       const blob=new Blob([pdf],{type:"application/pdf"});
       const a=document.createElement("a");
       a.href=URL.createObjectURL(blob);
@@ -1657,6 +2044,7 @@
     }
   }
 
+  $("generalPdfBtn").addEventListener("click", exportGeneralDoubleSidedPdf);
   $("superiorPodBtn").addEventListener("click", exportSuperiorPodPdf);
 
   $("printBtn").addEventListener("click", () => {
