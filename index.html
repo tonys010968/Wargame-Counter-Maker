@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Wargame Counter Creator v0.29</title>
+  <title>Wargame Counter Creator v0.35</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="app-header">
     <div>
       <h1>Wargame Counter Creator</h1>
-      <div class="brand-line"><span class="starfall-mark" aria-hidden="true">✦</span><span>Starfall Works</span><span class="brand-sep">•</span><span>v0.29</span></div>
+      <div class="brand-line"><span class="starfall-mark" aria-hidden="true">✦</span><span>Starfall Works</span><span class="brand-sep">•</span><span>v0.35</span></div>
     </div>
     <div class="header-actions">
       <button id="newProjectBtn">New</button>
@@ -132,6 +132,10 @@
             <input id="textColor" type="color" value="#111111">
           </label>
 
+          <label>Silhouette color
+            <input id="symbolColor" type="color" value="#000000">
+          </label>
+
           <label>Label font size (%)
             <input id="labelTextScale" type="number" min="50" max="200" step="5" value="100">
           </label>
@@ -156,6 +160,13 @@
             <select id="symbolSelect">
               <option value="">None</option>
               <option value="infantry">Infantry</option>
+              <option value="oldSchoolInfantry">Old School Infantry</option>
+              <option value="oldSchoolCavalry">Old School Cavalry</option>
+              <option value="oldSchoolArtillery">Old School Artillery</option>
+              <option value="oldSchoolArmor">Old School Armor</option>
+              <option value="oldSchoolJetFighter">Old School Jet Fighter</option>
+              <option value="oldSchoolSupportPlane">Old School Support Plane</option>
+              <option value="oldSchoolHeavyBomber">Old School Heavy Bomber</option>
               <option value="tank">Tank</option>
               <option value="artillery">Artillery</option>
               <option value="truck">Truck</option>

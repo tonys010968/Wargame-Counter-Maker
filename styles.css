@@ -938,3 +938,23 @@ body.template-information .non-info-only { display:none !important; }
 #generalPdfBtn {
   font-weight:700;
 }
+
+
+/* v0.34 force all symbols black by default for consistency */
+.symbol-force-black {
+  filter: brightness(0) saturate(100%);
+}
+
+
+/* v0.35 custom imported symbols can now be tinted using Symbol Color */
+.custom-symbol-mask {
+  width: 100%;
+  height: 100%;
+  display: block;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}

@@ -3,6 +3,13 @@
 
   const SYMBOLS = {
     infantry: `<svg viewBox="0 0 100 60" aria-hidden="true"><g fill="currentColor"><circle cx="50" cy="11" r="8"/><path d="M43 21h14l7 15-8 4v18H44V40l-8-4z"/><path d="M41 25 23 44l6 5 18-17zM59 25l18 19-6 5-18-17z"/></g></svg>`,
+    oldSchoolInfantry: `<svg viewBox="0 0 100 60" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"><rect x="26" y="10" width="48" height="34"/><path d="M31 15 69 39M69 15 31 39"/></g></svg>`,
+    oldSchoolCavalry: `<svg viewBox="0 0 100 60" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"><rect x="26" y="10" width="48" height="34"/><path d="M31 39 69 15"/></g></svg>`,
+    oldSchoolArtillery: `<svg viewBox="0 0 100 60" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="square"><rect x="26" y="10" width="48" height="34"/></g><circle cx="50" cy="27" r="6" fill="currentColor"/></svg>`,
+    oldSchoolArmor: `<svg viewBox="0 0 100 60" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="4"><rect x="26" y="10" width="48" height="34"/><rect x="35" y="20" width="30" height="12" rx="6" ry="6"/></g></svg>`,
+    oldSchoolJetFighter: `<svg viewBox="0 0 100 60" aria-hidden="true"><path fill="currentColor" d="M50 6 57 22 70 35 58 35 58 48 42 48 42 35 30 35 43 22Z"/></svg>`,
+    oldSchoolSupportPlane: `<svg viewBox="0 0 100 60" aria-hidden="true"><path fill="currentColor" d="M48 12H52V21L78 28V35L52 32V47H48V32L22 35V28L48 21Z"/></svg>`,
+    oldSchoolHeavyBomber: `<svg viewBox="0 0 100 60" aria-hidden="true"><path fill="currentColor" d="M48 10H52V18L60 23 70 28 82 34V39L68 35 63 33V39L59 39V31L52 28V48H48V28L41 31V39H37V33L32 35 18 39V34L30 28 40 23 48 18Z"/><rect x="27" y="22" width="4" height="8" fill="currentColor"/><rect x="69" y="22" width="4" height="8" fill="currentColor"/></svg>`,
     tank: `<svg viewBox="0 0 120 60"><g fill="currentColor"><rect x="20" y="28" width="70" height="20" rx="4"/><rect x="42" y="17" width="35" height="14" rx="4"/><rect x="71" y="21" width="42" height="5"/><circle cx="34" cy="50" r="7"/><circle cx="52" cy="50" r="7"/><circle cx="70" cy="50" r="7"/><circle cx="88" cy="50" r="7"/></g></svg>`,
     artillery: `<svg viewBox="0 0 120 60"><g fill="currentColor"><circle cx="38" cy="45" r="12"/><circle cx="82" cy="45" r="12"/><rect x="30" y="26" width="55" height="10" rx="3"/><rect x="72" y="23" width="43" height="5"/><rect x="55" y="15" width="12" height="18"/></g></svg>`,
     truck: `<svg viewBox="0 0 120 60"><g fill="currentColor"><rect x="12" y="24" width="58" height="22" rx="3"/><path d="M70 29h25l13 17H70z"/><circle cx="31" cy="49" r="8"/><circle cx="86" cy="49" r="8"/></g></svg>`,
@@ -56,6 +63,7 @@
     stripeColor: "#ffffff",
     border: "#111111",
     text: "#111111",
+    symbolColor: "#000000",
     labelTextScale: 100,
     numberTextScale: 100,
     twoSided: false,
@@ -94,6 +102,7 @@
     stripeColor: $("stripeColor"),
     borderColor: $("borderColor"),
     textColor: $("textColor"),
+    symbolColor: $("symbolColor"),
     labelTextScale: $("labelTextScale"),
     numberTextScale: $("numberTextScale"),
     unitName: $("unitName"),
@@ -134,7 +143,7 @@
       "defenseColor","defenseHighlight","defenseHighlightColor",
       "moveColor","moveHighlight","moveHighlightColor",
       "symbol","customSymbolId","size","bleed","safeInset","bg","stripeOrientation",
-      "stripePosition","stripeColor","border","text","labelTextScale","numberTextScale"
+      "stripePosition","stripeColor","border","text","symbolColor","labelTextScale","numberTextScale"
     ];
     const side = {};
     for (const k of keys) side[k] = c[k];
@@ -147,6 +156,7 @@
     if (!["none","vertical","horizontal"].includes(out.stripeOrientation)) out.stripeOrientation = "none";
     if (!["start","center","end"].includes(out.stripePosition)) out.stripePosition = "center";
     out.stripeColor ||= "#ffffff";
+    out.symbolColor ||= "#000000";
     out.labelTextScale = Math.max(50, Math.min(200, Number(out.labelTextScale) || 100));
     out.numberTextScale = Math.max(50, Math.min(200, Number(out.numberTextScale) || 100));
     return out;
@@ -207,6 +217,7 @@
     controls.stripeColor.value = c.stripeColor || "#ffffff";
     controls.borderColor.value = c.border;
     controls.textColor.value = c.text;
+    controls.symbolColor.value = c.symbolColor || "#000000";
     controls.labelTextScale.value = String(Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)));
     controls.numberTextScale.value = String(Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)));
     controls.unitName.value = c.name;
@@ -270,6 +281,7 @@
     c.stripeColor = controls.stripeColor.value || "#ffffff";
     c.border = controls.borderColor.value;
     c.text = controls.textColor.value;
+    c.symbolColor = controls.symbolColor.value || "#000000";
     c.labelTextScale = Math.max(50, Math.min(200, Number(controls.labelTextScale.value) || 100));
     controls.labelTextScale.value = String(c.labelTextScale);
     c.numberTextScale = Math.max(50, Math.min(200, Number(controls.numberTextScale.value) || 100));
@@ -341,14 +353,17 @@
   }
 
   function getSymbolMarkup(c) {
+    const symbolColor = c.symbolColor || "#000000";
     if (c.customSymbolId) {
       const s = (state.customSymbols || []).find(x => x.id === c.customSymbolId);
       if (s?.dataUrl) {
-        return `<img class="custom-symbol-img" src="${s.dataUrl}" alt="">`;
+        const url = escapeHtml(s.dataUrl);
+        return `<span class="custom-symbol-mask" style="background:${symbolColor};-webkit-mask-image:url('${url}');mask-image:url('${url}');"></span>`;
       }
     }
     if (!c.symbol) return "";
-    return SYMBOLS[c.symbol] || SYMBOLS.infantry;
+    const svg = SYMBOLS[c.symbol] || SYMBOLS.infantry;
+    return svg.replace(/currentColor/g, symbolColor);
   }
 
   function readFileAsDataURL(file) {
@@ -1058,7 +1073,7 @@
   $("exportCsvBtn").addEventListener("click", () => {
     const headers = [
       "Counter Number","Quantity","Template","Counter Size (in)","Background Color","Stripe Orientation","Stripe Color","Border Color","Main Text Color","Label Font Size (%)","Number Font Size (%)",
-      "Unit Name","Unit Type","Information Text","Symbol",
+      "Unit Name","Unit Type","Information Text","Symbol","Symbol Color",
       "Top Left","Top Left Text Color","Top Left Highlight","Top Left Highlight Color",
       "Top Right","Top Right Text Color","Top Right Highlight","Top Right Highlight Color",
       "Bottom Left","Bottom Left Text Color","Bottom Left Highlight","Bottom Left Highlight Color",
@@ -1068,7 +1083,7 @@
 
     const rows = state.counters.map((c, index) => [
       index + 1, Math.max(1, Math.floor(Number(c.quantity) || 1)), c.template || "classic", c.size ?? "", c.bg || "", c.stripeOrientation || "none", c.stripeColor || "#ffffff", c.border || "", c.text || "", Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)), Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)),
-      c.name || "", c.type || "", c.infoText || "", exportedSymbolName(c),
+      c.name || "", c.type || "", c.infoText || "", exportedSymbolName(c), c.symbolColor || "#000000",
       c.topLeft || "", c.topLeftColor || "#111111", c.topLeftHighlight ? "Yes" : "No", c.topLeftHighlightColor || "",
       c.topRight || "", c.topRightColor || "#111111", c.topRightHighlight ? "Yes" : "No", c.topRightHighlightColor || "",
       c.attack || "", c.attackColor || "#111111", c.attackHighlight ? "Yes" : "No", c.attackHighlightColor || "",
@@ -1134,6 +1149,9 @@
         c.moveColor ||= "#111111";
         if (c.moveHighlight == null) c.moveHighlight = false;
         c.moveHighlightColor ||= "#fff59d";
+
+        c.symbolColor ||= "#000000";
+        if (c.back) c.back.symbolColor ||= c.symbolColor;
       });
       state.selectedId = state.selectedId && state.counters.some(c => c.id === state.selectedId)
         ? state.selectedId
@@ -1286,14 +1304,72 @@
     });
   }
 
+  function hexToRgb(hex) {
+    const raw = String(hex || "").trim();
+    const normalized = raw.startsWith("#") ? raw.slice(1) : raw;
+    if (/^[0-9a-fA-F]{3}$/.test(normalized)) {
+      return {
+        r: parseInt(normalized[0] + normalized[0], 16),
+        g: parseInt(normalized[1] + normalized[1], 16),
+        b: parseInt(normalized[2] + normalized[2], 16)
+      };
+    }
+    if (/^[0-9a-fA-F]{6}$/.test(normalized)) {
+      return {
+        r: parseInt(normalized.slice(0, 2), 16),
+        g: parseInt(normalized.slice(2, 4), 16),
+        b: parseInt(normalized.slice(4, 6), 16)
+      };
+    }
+    return { r: 0, g: 0, b: 0 };
+  }
+
+  function loadTintedSymbolUrl(url, color="#000000") {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, img.width || 1);
+          canvas.height = Math.max(1, img.height || 1);
+          const ctx = canvas.getContext("2d");
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0);
+
+          const { r, g, b } = hexToRgb(color);
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          for (let i = 0; i < data.length; i += 4) {
+            if (data[i + 3] > 0) {
+              data[i] = r;
+              data[i + 1] = g;
+              data[i + 2] = b;
+            }
+          }
+          ctx.putImageData(imageData, 0, 0);
+
+          const out = new Image();
+          out.onload = () => resolve(out);
+          out.onerror = () => reject(new Error("Could not recolor the imported symbol."));
+          out.src = canvas.toDataURL("image/png");
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = () => reject(new Error("Could not render a counter image."));
+      img.src = url;
+    });
+  }
+
+
   async function canvasSymbolImage(c) {
+    const symbolColor = c.symbolColor || "#000000";
     if (c.customSymbolId) {
       const custom = (state.customSymbols || []).find(s => s.id === c.customSymbolId);
-      if (custom?.dataUrl) return loadImageUrl(custom.dataUrl);
+      if (custom?.dataUrl) return loadTintedSymbolUrl(custom.dataUrl, symbolColor);
     }
     if (!c.symbol || !SYMBOLS[c.symbol]) return null;
-    const color = c.text || "#111111";
-    let svg = SYMBOLS[c.symbol].replace(/currentColor/g, color);
+    let svg = SYMBOLS[c.symbol].replace(/currentColor/g, symbolColor);
     if (!/^<svg[^>]*xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
     return loadImageUrl("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
   }

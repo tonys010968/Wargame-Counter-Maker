@@ -1,4 +1,4 @@
-# Wargame Counter Creator v0.29
+# Wargame Counter Creator v0.35
 
 
 ## Starfall Works
@@ -11,7 +11,7 @@ Wargame Counter Creator is a Starfall Works product. Version 0.8 adds subtle Sta
 2. Open `index.html` in Chrome, Edge, Firefox, or Safari.
 3. No server or installation is required.
 
-## Included in v0.29
+## Included in v0.35
 
 - Counter templates:
   - Classic: name, unit type, centered symbol and three bottom values
@@ -312,3 +312,115 @@ Manual layout features:
 - Numeric values retain the requested Number Font Size when possible, but reduce only when needed to fit their individual stat position.
 - Counter borders are drawn after clipping so the finished edge remains crisp and visible.
 - Physical counter sizing from v0.27/v0.28 remains unchanged.
+
+
+## v0.30 new built-in old school unit symbols
+
+Added three new built-in symbol options based on the uploaded reference image:
+
+- **Old School Infantry** — classic boxed X symbol
+- **Old School Cavalry** — classic boxed diagonal slash symbol
+- **Old School Artillery** — classic boxed dot symbol
+
+These are available directly in the normal symbol dropdown and can be used anywhere the built-in silhouettes/symbols are supported, including:
+
+- Counter Designer preview
+- standard sheet layout
+- General Double-Sided PDF export
+- Superior POD export
+
+### Future enhancement idea
+As the library continues to grow, a future improvement would be to organize built-in symbols into categories such as:
+
+- Ground Units
+- Air Units
+- Naval Units
+- Old School / Traditional Symbols
+- Custom Imported Symbols
+
+That categorization feature is not implemented yet, but this version keeps the new old-school symbols ready for it.
+
+
+## v0.31 old-school symbol centering correction
+
+- Corrected the built-in **Old School Infantry**, **Old School Cavalry** and **Old School Artillery** symbol artwork so it is centered within the SVG canvas.
+- This fixes the symbols appearing offset when placed on counters.
+- The correction applies consistently to:
+  - the on-screen Counter Designer
+  - regular sheet layout
+  - General Double-Sided PDF export
+  - Superior POD export
+
+### Technical note
+The issue was not with symbol placement logic. The symbol wrapper itself was centering correctly, but the artwork inside the SVG view box was drawn too far left. The SVG geometry is now centered properly.
+
+
+## v0.32 new built-in old-school symbol
+
+Added one new built-in symbol based on the uploaded reference image:
+
+- **Old School Armor** — classic boxed armor symbol with centered rounded capsule
+
+This symbol is now available directly in the normal symbol dropdown and works anywhere the built-in symbols are supported, including:
+
+- Counter Designer preview
+- regular sheet layout
+- General Double-Sided PDF export
+- Superior POD export
+
+
+## v0.33 new built-in old-school air symbols
+
+Added three new built-in symbol options based on the uploaded reference image:
+
+- **Old School Jet Fighter**
+- **Old School Support Plane**
+- **Old School Heavy Bomber**
+
+These are available directly in the normal symbol dropdown and can be used anywhere the built-in silhouettes/symbols are supported, including:
+
+- Counter Designer preview
+- regular sheet layout
+- General Double-Sided PDF export
+- Superior POD export
+
+
+## v0.34 default black symbol rendering
+
+- All symbols now default to **black** for consistency.
+- This applies to:
+  - built-in silhouettes and old-school symbols
+  - imported custom symbol images
+  - on-screen designer preview
+  - regular sheet layout
+  - General Double-Sided PDF export
+  - Superior POD export
+
+### Technical details
+- Built-in SVG symbols are now rendered with black artwork rather than inheriting the main text color.
+- Imported custom symbols are converted to black while preserving transparency.
+
+### Future enhancement idea
+A useful future enhancement would be a separate **Symbol Color** control so the user could choose black, white or another color independently of the text color. That is not implemented yet. For now, the default behavior is black for all symbols.
+
+
+## v0.35 silhouette color picker
+
+Added a new **Silhouette Color** control so each counter side can choose the symbol color independently.
+
+### What it affects
+- built-in silhouettes
+- old-school unit symbols
+- imported custom silhouettes
+- on-screen Counter Designer preview
+- regular sheet layout
+- General Double-Sided PDF export
+- Superior POD export
+
+### Behavior
+- Default silhouette color remains **black** so older projects retain the same look.
+- Front and back sides can use different silhouette colors when a counter is two-sided.
+- CSV export now includes a **Symbol Color** column.
+
+### Technical note
+Imported symbols are now recolored dynamically while preserving transparency, so scanned or imported silhouette art can use the same color system as the built-in symbols.
