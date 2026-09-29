@@ -1,9 +1,46 @@
-# Wargame Counter Creator v0.35
+# Wargame Counter Creator 1.0
+
+## Release 1.0
+
+This is the first production release of **Wargame Counter Creator** by **Starfall Works**. Release 1.0 establishes the current feature set as the stable baseline for future development.
+
+### Core capabilities
+- Counter sizes: 1/2", 5/8", 3/4" and 1"
+- Classic, Six-Value, Information and Large Ship templates
+- Two-sided counter design with independent front/back artwork
+- Traditional silhouettes, imported custom symbols and NATO / APP-6 symbology
+- Searchable NATO / APP-6 symbol browser with direct SIDC support
+- Independent silhouette colors
+- Damage explosion overlay with selectable color
+- Background stripes and number highlighting
+- Quantity and counter-order management
+- CSV export and import for bulk editing
+- Project save/load in JSON
+
+### Printing and production
+- Letter and A4 sheet layout
+- General double-sided PDF export
+- Superior POD export for 5/8", 3/4" and 1" counters
+- Exact-slot manual POD placement
+- Front/back registration and linked back positions
+- Bleed-aware POD output
+- Manufacturer reference templates bundled with the release
+
+### Documentation
+The release package includes both PDF and Word user manuals.
 
 
 ## Starfall Works
 
 Wargame Counter Creator is a Starfall Works product. Version 0.8 adds subtle Starfall Works branding to the header and footer.
+
+## Monetization / Ads
+
+The downloadable version is intentionally ad-free. Google AdSense should not be embedded in a packaged/local software application. If a hosted web edition is created, advertising can be added to the surrounding website after the site is approved by the ad provider and applicable privacy/consent requirements are implemented.
+
+For a non-intrusive layout, use one clearly separated banner area above the application workspace or place sponsorship on landing/help pages. Keep ads well away from Save, Export, Import, Print and other high-interaction controls.
+
+A local browser-based tool for creating traditional hex-and-counter wargame counters and laying them out on printable sheets.
 
 ## Run
 
@@ -11,7 +48,7 @@ Wargame Counter Creator is a Starfall Works product. Version 0.8 adds subtle Sta
 2. Open `index.html` in Chrome, Edge, Firefox, or Safari.
 3. No server or installation is required.
 
-## Included in v0.35
+## Included in 1.0
 
 - Counter templates:
   - Classic: name, unit type, centered symbol and three bottom values
@@ -424,3 +461,281 @@ Added a new **Silhouette Color** control so each counter side can choose the sym
 
 ### Technical note
 Imported symbols are now recolored dynamically while preserving transparency, so scanned or imported silhouette art can use the same color system as the built-in symbols.
+
+
+## v0.36 Superior POD export cleanup
+
+Improved the **Superior POD** export in two important ways:
+
+### 1) Removed black divider lines between counters
+- The POD renderer no longer draws border strokes around each individual counter.
+- This prevents unwanted dark lines between adjacent counters in the print file.
+
+### 2) Increased POD text safety
+- The Superior POD safe inset was increased slightly.
+- The POD text and value layout was moved a bit farther inward.
+- Unit names, top values and bottom values now sit less close to the trim boundaries.
+
+### Scope
+These changes apply specifically to the **Superior POD export** path.  
+They do not change the normal on-screen designer or the General Double-Sided PDF layout behavior.
+
+
+## v0.37 Large Ship template
+
+Added the first layout designed specifically for larger counters: **Large Ship (3/4 & 1 inch)**.
+
+### Layout
+Top row:
+- two numeric values on the left
+- centered country designation, limited to 2 characters
+- two numeric values on the right
+
+Center:
+- large ship silhouette
+- ship name below the silhouette, left justified
+- single-letter field at the right edge of the name row
+
+Bottom row:
+- two numeric values on the left
+- centered ship-type designation, limited to 2 characters
+- two numeric values on the right
+
+### Larger-counter behavior
+- The template is intended for 3/4 inch and 1 inch counters.
+- Selecting Large Ship while using a smaller counter automatically changes the counter to 3/4 inch.
+- Existing Classic, Six-Value and Information templates remain available for the larger sizes.
+
+### Styling
+- All eight numeric positions are optional.
+- Each numeric position has its own text color, highlight toggle and highlight color.
+- Country, ship type, ship name and the one-letter field use Label Font Size.
+- Numeric ratings use Number Font Size.
+- Silhouette color continues to use the independent Silhouette Color setting.
+- Front and back faces can use different Large Ship values on two-sided counters.
+
+### Output
+The Large Ship layout is supported in:
+- Counter Designer preview
+- regular Sheet Designer output
+- General Double-Sided PDF export
+- CSV project data export
+
+Superior POD remains limited to the manufacturer's 5/8 inch format, so Large Ship counters are intentionally not eligible for Superior POD export.
+
+
+## v0.38 Superior POD 3/4-inch and 1-inch support
+
+The Superior POD workflow now supports three manufacturer counter-sheet formats:
+
+- **5/8 inch** - 176 front positions
+- **3/4 inch** - 126 front positions
+- **1 inch** - 80 front positions
+
+### Template selector
+The Sheet Designer now includes a **Superior POD counter size** selector. The selected size controls:
+
+- the manufacturer press-sheet geometry
+- which counters are eligible for the POD export
+- the exact-slot manual planner
+- the linked back positions
+- the PDF page dimensions and counter positions
+
+### Manual placement at all three sizes
+Each size has its own persistent manual slot layout.
+
+For 3/4-inch and 1-inch sheets, the planner reproduces the portrait manufacturer layout with fronts in the upper section and their linked backs in the lower section. A counter placed in a specific front slot is automatically paired with the corresponding back slot required by that template.
+
+The 5/8-inch planner continues to use its existing side-by-side front/back arrangement.
+
+### Automatic placement
+Automatic export is also size-aware. It exports only counters matching the selected Superior POD size and fills manufacturer slots in counter-list/quantity order.
+
+### Two-sided and one-sided counters
+- True two-sided counters use their independently designed back face.
+- One-sided counters receive the same background and stripe treatment on the linked back position with no text, symbol, or stats.
+- **Repeat fronts on backs** remains available as an override.
+
+### Printing details
+- No printed divider/border lines are added to POD output.
+- Background bleed is extended outside each finished counter area.
+- PDF page dimensions remain true physical manufacturer dimensions at 72 PDF points per inch while artwork is rasterized internally at 300 DPI.
+
+### Included reference templates
+The package now contains the two supplied manufacturer reference PDFs in the `templates` folder:
+
+- `Three-Quarter-Inch-Counter-Template.pdf`
+- `1IN-Sheet-Design-2-8-14.pdf`
+
+These are included for reference; the application export uses coded geometry derived from those templates rather than embedding the template artwork in the final print PDF.
+
+
+## v0.39 CSV import / bulk editing
+
+Added **Import CSV** to support bulk counter editing in Excel, Google Sheets, LibreOffice or another spreadsheet tool.
+
+### Recommended workflow
+1. Save the project JSON as your master backup.
+2. Click **Export CSV**.
+3. Open `wargame-counters.csv` in a spreadsheet.
+4. Make bulk edits, such as changing every `Counter Size (in)` from `0.625` to `0.75`, or changing background/symbol/text colors.
+5. Save/export the file as CSV.
+6. Click **Import CSV** and select the edited file.
+
+### How rows are matched
+CSV import updates existing counters using **Counter Number**:
+- Counter Number 1 updates the first counter in the project.
+- Counter Number 2 updates the second counter, and so on.
+- Import does not create duplicate counters.
+- Rows with invalid counter numbers are skipped and reported.
+
+### Partial-column imports
+Only columns present in the CSV are changed. This means a simplified CSV containing just:
+- Counter Number
+- Counter Size (in)
+
+can be used to change physical size without modifying names, colors or stats.
+
+Blank cells in a column that is present are treated as the intended value for text/stat fields, so the safest workflow is to export from the tool, edit the desired cells and re-import.
+
+### Supported bulk fields
+CSV import supports the exported front-face fields, including:
+- quantity
+- template
+- counter size
+- background, stripe, border, text and silhouette colors
+- label and number font sizes
+- unit name/type/information text
+- built-in or imported symbol selection
+- Classic/Six-Value stats and number styling
+- Large Ship country, letter, ship type and all eight number positions/styles
+
+### Two-sided counters
+The current CSV represents the front face. Importing a new counter size automatically updates the back face to the same physical size so front/back registration remains correct. Existing independently designed back-face artwork and values are preserved.
+
+### Validation
+- Supported sizes: 1/2, 5/8, 3/4 and 1 inch
+- Fraction forms such as `5/8` and `3/4` are accepted as well as decimal forms such as `0.625` and `0.75`
+- Colors accept `#RRGGBB` and `#RGB`
+- Highlight values accept Yes/No, True/False and 1/0
+- Large Ship counters are automatically kept at 3/4 inch or larger
+
+## Bundled Superior POD templates
+
+The ZIP now includes all three Superior POD manufacturer reference PDFs in the `templates` folder:
+
+- `Five-Eighth-Inch-Counter-Template.pdf`
+- `Three-Quarter-Inch-Counter-Template.pdf`
+- `1IN-Sheet-Design-2-8-14.pdf`
+
+
+## v0.40 imported silhouette background fix
+
+Fixed a custom-symbol rendering problem where some imported silhouettes could appear as solid colored rectangles or black boxes.
+
+### Cause
+Earlier versions treated every nontransparent pixel in an imported image as part of the silhouette. Images that had a white, cream, gray or otherwise opaque background therefore caused the entire rectangular image area to be recolored.
+
+### New behavior
+Imported silhouettes are now normalized into a transparency mask:
+
+- Images that already contain true transparency preserve their alpha channel.
+- Opaque images have their background estimated from corner pixels.
+- Near-background pixels are removed.
+- Antialiased silhouette edges are retained with a soft transparency transition.
+- The resulting silhouette can still use the **Silhouette Color** picker.
+
+This correction applies to:
+- Counter Designer preview
+- regular sheet output
+- General Double-Sided PDF
+- Superior POD exports at 5/8, 3/4 and 1 inch
+
+### Existing projects
+When a saved project is loaded, v0.40 automatically creates normalized masks for older imported symbols that do not already contain one. The original imported image data is preserved in the project.
+
+
+## v0.41 damage explosion overlay
+
+Added a new per-side **Damage explosion** option for counters.
+
+### What it does
+- Places an explosion graphic behind the silhouette to represent a damaged unit
+- Keeps the silhouette in the foreground
+- Lets you choose the **Explosion color** independently from the silhouette color
+- Works in the Counter Designer preview, sheet output, General Double-Sided PDF and Superior POD exports
+
+### Notes
+- The explosion appears only when the counter side has a silhouette selected
+- Front and back can use different explosion settings on two-sided counters
+- CSV export/import now includes `Damage Explosion` and `Damage Explosion Color` so bulk edits are possible
+
+
+## v0.42 NATO / APP-6 military symbology
+
+Added NATO joint military symbology support using the open-source **milsymbol 3.0.4** browser renderer.
+
+### Why this is implemented as a renderer
+APP-6 is a full military symbology standard rather than a short list of silhouettes. A direct SIDC renderer makes the complete symbol system accessible without hard-coding hundreds of individual SVG files.
+
+### Symbol categories
+The Silhouette / Symbol selector is now grouped into:
+- Traditional silhouettes
+- Old School unit symbols
+- NATO / APP-6
+
+This begins the symbol categorization work requested earlier.
+
+### NATO / APP-6 controls
+Choose **NATO / APP-6 Symbol…** and the designer exposes:
+- a small set of common presets
+- a direct **SIDC** field
+- **Show NATO frame** toggle
+
+The SIDC field accepts any symbol identification code supported by milsymbol, which includes STANAG APP-6 B, D and E as well as compatible MIL-STD-2525 symbology.
+
+### Color and damage support
+NATO symbols use the existing **Silhouette color** control through milsymbol's monochrome rendering option. The damage explosion overlay also works with NATO symbols and remains behind the military symbol.
+
+### Output support
+NATO symbols render in:
+- Counter Designer preview
+- regular sheet output
+- General Double-Sided PDF export
+- Superior POD export for 5/8, 3/4 and 1 inch sheets
+
+### CSV
+CSV export/import now includes:
+- `NATO SIDC`
+- `NATO Frame`
+
+### Internet requirement
+The main Wargame Counter Creator remains local and standalone. NATO rendering currently loads the MIT-licensed `milsymbol` browser bundle from UNPKG when the app opens, so NATO symbols require an internet connection. Existing built-in and imported silhouettes remain fully local.
+
+### Library
+- milsymbol 3.0.4
+- Project: spatialillusions/milsymbol
+- License: MIT
+
+
+## v0.44 compact searchable NATO browser
+
+v0.44 is rebuilt from v0.42 to preserve the established Wargame Counter Creator layout and styling.
+
+### Old School group removed
+The visible **Old School unit symbols** group has been removed because those box-based unit marks overlap with the NATO / APP-6 symbology workflow.
+
+Older project files remain compatible. Old School infantry, cavalry, artillery and armor selections are migrated to corresponding NATO symbols when a project is loaded.
+
+### Searchable NATO symbols
+The NATO panel now uses a compact native interface:
+- search field
+- category filter
+- small result list
+- direct SIDC field
+- optional frame toggle
+
+This avoids the large card-style browser introduced in v0.43 and keeps the designer's dimensions and visual hierarchy consistent with v0.42.
+
+### Search catalog
+The built-in friendly-name catalog covers common combat, combat support, service support, command and aviation unit types. Direct SIDC entry remains available for any additional APP-6 symbol supported by milsymbol.

@@ -101,8 +101,23 @@ button.danger { background:#553236; border-color:#704248; }
 .symbol-wrap {
   position:absolute; left:16%; top:20%; width:68%; height:39%;
   display:flex; align-items:center; justify-content:center;
+  overflow:visible;
 }
-.symbol-wrap svg, .symbol-wrap img { width:100%; height:100%; display:block; object-fit:contain; }
+.symbol-wrap svg, .symbol-wrap img, .symbol-wrap .custom-symbol-mask {
+  width:100%; height:100%; display:block; object-fit:contain;
+  position:relative; z-index:2;
+}
+.damage-explosion {
+  position:absolute;
+  left:-10%; top:-14%; width:120%; height:128%;
+  display:block;
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:contain;
+  pointer-events:none;
+  z-index:1;
+}
+
 .stat { bottom:5%; width:27%; font-size:15%; }
 .stat.attack { left:4%; }
 .stat.defense { left:36.5%; }
@@ -297,6 +312,7 @@ body.template-information .non-info-only { display:none !important; }
 /* v0.7 layering fixes */
 .symbol-wrap { z-index:1; }
 .unit-name, .unit-type, .stat, .top-stat, .info-text { z-index:2; }
+.safe-outline { z-index:4; }
 
 .app-footer {
   display:flex;
@@ -727,7 +743,7 @@ body.template-information .non-info-only { display:none !important; }
   position:relative;
   width:1037px;
   height:691px;
-  min-width:1037px;
+  min-width:1037px; /* initial 5/8 size; JS updates per POD template */
   background:#f7f7f3;
   box-shadow:0 2px 8px rgba(0,0,0,.35);
 }
@@ -793,11 +809,8 @@ body.template-information .non-info-only { display:none !important; }
 }
 .pod-exact-sheet-midline {
   position:absolute;
-  left:518px;
-  top:0;
-  bottom:0;
-  width:1px;
   background:rgba(0,0,0,.15);
+  pointer-events:none;
 }
 @media (max-width: 900px) {
   .pod-slot-editor {
@@ -957,4 +970,143 @@ body.template-information .non-info-only { display:none !important; }
   mask-position: center;
   -webkit-mask-size: contain;
   mask-size: contain;
+}
+
+
+/* v0.37 large ship template */
+.large-ship-only { display:none !important; }
+body.template-largeShip .large-ship-only { display:grid !important; }
+body.template-largeShip .non-large-ship { display:none !important; }
+
+.large-ship-fields {
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:#20242a;
+}
+.large-ship-field-heading {
+  grid-column:1/-1;
+  font-size:13px;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:2px;
+}
+
+.large-ship-template .unit-name,
+.large-ship-template .unit-type,
+.large-ship-template > .stat,
+.large-ship-template > .top-stat { display:none !important; }
+
+.large-ship-template .ship-symbol {
+  left:12%;
+  top:20%;
+  width:76%;
+  height:35%;
+}
+
+.large-ship-template .ship-top-stat,
+.large-ship-template .ship-bottom-stat,
+.large-ship-template .ship-country,
+.large-ship-template .ship-type-code,
+.large-ship-template .ship-name,
+.large-ship-template .ship-letter {
+  position:absolute;
+  z-index:3;
+  display:flex;
+  align-items:center;
+  box-sizing:border-box;
+}
+
+.large-ship-template .ship-top-stat,
+.large-ship-template .ship-bottom-stat {
+  width:14%;
+  justify-content:center;
+  text-align:center;
+  font-weight:700;
+}
+.large-ship-template .ship-top-stat { top:3%; height:16%; }
+.large-ship-template .ship-bottom-stat { bottom:3%; height:16%; }
+
+.large-ship-template .ship-tl1,
+.large-ship-template .ship-bl1 { left:3%; }
+.large-ship-template .ship-tl2,
+.large-ship-template .ship-bl2 { left:18%; }
+.large-ship-template .ship-tr1,
+.large-ship-template .ship-br1 { right:18%; }
+.large-ship-template .ship-tr2,
+.large-ship-template .ship-br2 { right:3%; }
+
+.large-ship-template .ship-country,
+.large-ship-template .ship-type-code {
+  left:40%;
+  width:20%;
+  justify-content:center;
+  text-align:center;
+  font-weight:700;
+}
+.large-ship-template .ship-country { top:3%; height:16%; }
+.large-ship-template .ship-type-code { bottom:3%; height:16%; }
+
+.large-ship-template .ship-name {
+  left:5%;
+  top:59%;
+  width:76%;
+  height:14%;
+  justify-content:flex-start;
+  text-align:left;
+  font-weight:700;
+  overflow:hidden;
+  white-space:nowrap;
+}
+.large-ship-template .ship-letter {
+  right:5%;
+  top:59%;
+  width:10%;
+  height:14%;
+  justify-content:flex-end;
+  text-align:right;
+  font-weight:700;
+}
+
+
+/* v0.42 NATO / APP-6 symbol support */
+.nato-only { display:none !important; }
+body.symbol-nato .nato-only { display:grid !important; }
+
+.nato-controls {
+  grid-template-columns:1fr;
+  gap:9px;
+  padding:10px;
+  border:1px solid var(--border);
+  border-radius:6px;
+  background:#20242a;
+}
+.nato-controls-heading {
+  font-size:13px;
+  font-weight:700;
+  color:var(--text);
+}
+.nato-status {
+  padding:7px 8px;
+  border:1px solid var(--border);
+  border-radius:5px;
+  font-size:11px;
+  color:var(--muted);
+  background:#171a1e;
+}
+.nato-status.warning {
+  color:#ffcc80;
+}
+
+
+/* v0.44 compact searchable NATO browser */
+.nato-controls select[size] {
+  min-height: 122px;
+  max-height: 150px;
+  padding:4px;
+}
+.nato-controls select[size] option {
+  padding:4px 5px;
 }

@@ -23,6 +23,107 @@
     helicopter: `<svg viewBox="0 0 120 60"><g fill="currentColor"><path d="M24 32c7-9 17-13 31-13h22l16 10-4 8H57l-15 8H20l-8-6z"/><rect x="55" y="12" width="8" height="10"/><rect x="22" y="8" width="76" height="4" rx="2"/><rect x="84" y="31" width="27" height="4"/><path d="M105 22h4v24h-4z"/><path d="M96 32h22v4H96z"/><circle cx="39" cy="47" r="5"/><circle cx="81" cy="43" r="4"/></g></svg>`
   };
 
+
+  const NATO_SYMBOL_CATALOG = [
+    {name:"Infantry", sidc:"SFGPUCI-----", category:"combat", keywords:"rifle foot infantry"},
+    {name:"Light Infantry", sidc:"SFGPUCIL----", category:"combat", keywords:"light infantry"},
+    {name:"Motorized Infantry", sidc:"SFGPUCIM----", category:"combat", keywords:"motorized motorised infantry"},
+    {name:"Mountain Infantry", sidc:"SFGPUCIO----", category:"combat", keywords:"mountain alpine infantry"},
+    {name:"Airborne Infantry", sidc:"SFGPUCIA----", category:"combat", keywords:"airborne parachute infantry"},
+    {name:"Air Assault Infantry", sidc:"SFGPUCIS----", category:"combat", keywords:"air assault helicopter infantry"},
+    {name:"Mechanized Infantry", sidc:"SFGPUCIZ----", category:"combat", keywords:"mechanized mechanised armored infantry"},
+    {name:"Naval Infantry", sidc:"SFGPUCIN----", category:"combat", keywords:"marine naval infantry"},
+    {name:"Armor", sidc:"SFGPUCA-----", category:"combat", keywords:"armor armour tank"},
+    {name:"Tracked Armor", sidc:"SFGPUCAT----", category:"combat", keywords:"tracked armor armour tank"},
+    {name:"Wheeled Armor", sidc:"SFGPUCAW----", category:"combat", keywords:"wheeled armor armoured car"},
+    {name:"Anti-Armor", sidc:"SFGPUCAA----", category:"combat", keywords:"anti tank antiarmor"},
+    {name:"Reconnaissance", sidc:"SFGPUCR-----", category:"combat", keywords:"recon scout cavalry"},
+    {name:"Cavalry Reconnaissance", sidc:"SFGPUCRV----", category:"combat", keywords:"cavalry reconnaissance"},
+    {name:"Armored Cavalry", sidc:"SFGPUCRVA---", category:"combat", keywords:"armored armoured cavalry"},
+    {name:"Field Artillery", sidc:"SFGPUCF-----", category:"combat", keywords:"artillery cannon gun"},
+    {name:"Air Defense", sidc:"SFGPUCD-----", category:"combat", keywords:"air defence anti aircraft"},
+    {name:"Engineer", sidc:"SFGPUCE-----", category:"combat", keywords:"engineer combat engineer"},
+    {name:"Combat Engineer", sidc:"SFGPUCEC----", category:"combat", keywords:"combat engineer"},
+    {name:"Aviation", sidc:"SFGPUCV-----", category:"aviation", keywords:"aviation helicopter aircraft"},
+
+    {name:"Military Intelligence", sidc:"SFGPUUM-----", category:"combat-support", keywords:"intelligence mi"},
+    {name:"CBRN Nuclear", sidc:"SFGPUUAN----", category:"combat-support", keywords:"cbrn nbc nuclear"},
+    {name:"CBRN Biological", sidc:"SFGPUUAB----", category:"combat-support", keywords:"cbrn nbc biological"},
+    {name:"CBRN Decontamination", sidc:"SFGPUUAD----", category:"combat-support", keywords:"cbrn decon decontamination"},
+    {name:"Military Police", sidc:"SFGPUULM----", category:"combat-support", keywords:"military police mp"},
+    {name:"Signal Support", sidc:"SFGPUUSS----", category:"combat-support", keywords:"signal communications comms"},
+    {name:"Radio", sidc:"SFGPUUSR----", category:"combat-support", keywords:"radio signal communications"},
+    {name:"Information Warfare", sidc:"SFGPUUI-----", category:"combat-support", keywords:"information warfare cyber"},
+
+    {name:"Medical", sidc:"SFGPUSM-----", category:"service-support", keywords:"medical health"},
+    {name:"Medical Treatment Facility", sidc:"SFGPUSMM----", category:"service-support", keywords:"hospital aid medical"},
+    {name:"Supply", sidc:"SFGPUSS-----", category:"service-support", keywords:"supply logistics sustainment"},
+    {name:"Supply Class III", sidc:"SFGPUSS3----", category:"service-support", keywords:"fuel petroleum"},
+    {name:"Supply Class V", sidc:"SFGPUSS5----", category:"service-support", keywords:"ammunition ammo"},
+    {name:"Supply Class VIII", sidc:"SFGPUSS8----", category:"service-support", keywords:"medical supply"},
+    {name:"Water Supply", sidc:"SFGPUSSW----", category:"service-support", keywords:"water supply"},
+    {name:"Transportation Railhead", sidc:"SFGPUSTR----", category:"service-support", keywords:"transport railhead logistics"},
+    {name:"Maintenance Heavy", sidc:"SFGPUSXH----", category:"service-support", keywords:"maintenance heavy repair"},
+    {name:"Maintenance Recovery", sidc:"SFGPUSXR----", category:"service-support", keywords:"maintenance recovery repair"},
+    {name:"Ordnance", sidc:"SFGPUSXO----", category:"service-support", keywords:"ordnance maintenance weapons"},
+
+    {name:"Headquarters / Command", sidc:"SFGPUH------", category:"command", keywords:"headquarters hq command control c2"}
+  ];
+
+  function natoCategoryLabel(category) {
+    return ({
+      "combat":"Combat",
+      "combat-support":"Combat Support",
+      "service-support":"Combat Service Support",
+      "command":"Command & Control",
+      "aviation":"Aviation"
+    })[category] || category;
+  }
+
+  function filteredNatoCatalog() {
+    const query = String(controls.natoSearch?.value || "").trim().toLowerCase();
+    const category = controls.natoCategory?.value || "all";
+
+    return NATO_SYMBOL_CATALOG.filter(item => {
+      if (category !== "all" && item.category !== category) return false;
+      if (!query) return true;
+      const haystack = `${item.name} ${item.sidc} ${item.keywords || ""}`.toLowerCase();
+      return query.split(/\s+/).every(term => haystack.includes(term));
+    });
+  }
+
+  function renderNatoSearchResults() {
+    const select = controls.natoResultSelect;
+    if (!select) return;
+
+    const currentSidc = String(controls.natoSidc?.value || "").trim();
+    const matches = filteredNatoCatalog();
+    select.innerHTML = "";
+
+    if (!matches.length) {
+      const option = document.createElement("option");
+      option.value = "";
+      option.textContent = "No matches — enter a SIDC below";
+      select.appendChild(option);
+      select.disabled = true;
+      return;
+    }
+
+    select.disabled = false;
+    matches.forEach(item => {
+      const option = document.createElement("option");
+      option.value = item.sidc;
+      option.textContent = `${item.name} — ${natoCategoryLabel(item.category)}`;
+      select.appendChild(option);
+    });
+
+    if ([...select.options].some(o => o.value === currentSidc)) {
+      select.value = currentSidc;
+    } else {
+      select.selectedIndex = -1;
+    }
+  }
+
   const defaultCounter = () => ({
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
     name: "1/506 PIR",
@@ -52,8 +153,47 @@
     moveHighlight: false,
     moveHighlightColor: "#fff59d",
 
+    shipTopLeft1: "",
+    shipTopLeft2: "",
+    shipCountry: "",
+    shipTopRight1: "",
+    shipTopRight2: "",
+    shipLetter: "",
+    shipBottomLeft1: "",
+    shipBottomLeft2: "",
+    shipType: "",
+    shipBottomRight1: "",
+    shipBottomRight2: "",
+
+    shipTopLeft1Color: "#111111",
+    shipTopLeft1Highlight: false,
+    shipTopLeft1HighlightColor: "#fff59d",
+    shipTopLeft2Color: "#111111",
+    shipTopLeft2Highlight: false,
+    shipTopLeft2HighlightColor: "#fff59d",
+    shipTopRight1Color: "#111111",
+    shipTopRight1Highlight: false,
+    shipTopRight1HighlightColor: "#fff59d",
+    shipTopRight2Color: "#111111",
+    shipTopRight2Highlight: false,
+    shipTopRight2HighlightColor: "#fff59d",
+    shipBottomLeft1Color: "#111111",
+    shipBottomLeft1Highlight: false,
+    shipBottomLeft1HighlightColor: "#fff59d",
+    shipBottomLeft2Color: "#111111",
+    shipBottomLeft2Highlight: false,
+    shipBottomLeft2HighlightColor: "#fff59d",
+    shipBottomRight1Color: "#111111",
+    shipBottomRight1Highlight: false,
+    shipBottomRight1HighlightColor: "#fff59d",
+    shipBottomRight2Color: "#111111",
+    shipBottomRight2Highlight: false,
+    shipBottomRight2HighlightColor: "#fff59d",
+
     symbol: "infantry",
     customSymbolId: "",
+    natoSidc: "SFGPUCI-----",
+    natoFrame: false,
     size: 0.625,
     bleed: 0.0625,
     safeInset: 0.04,
@@ -64,6 +204,8 @@
     border: "#111111",
     text: "#111111",
     symbolColor: "#000000",
+    damageExplosion: false,
+    damageExplosionColor: "#ff8a00",
     labelTextScale: 100,
     numberTextScale: 100,
     twoSided: false,
@@ -82,11 +224,13 @@
       gutter: 0.0625,
       cropMarks: true,
       guides: true,
+      superiorPodSize: "0.625",
       superiorBackMode: "blank",
       superiorLayoutMode: "auto",
       superiorManualPages: [],
       superiorManualPageIndex: 0,
-      superiorSelectedSlotIndex: 0
+      superiorSelectedSlotIndex: 0,
+      superiorManualLayouts: {}
     }
   };
   state.selectedId = state.counters[0].id;
@@ -103,6 +247,8 @@
     borderColor: $("borderColor"),
     textColor: $("textColor"),
     symbolColor: $("symbolColor"),
+    damageExplosion: $("damageExplosion"),
+    damageExplosionColor: $("damageExplosionColor"),
     labelTextScale: $("labelTextScale"),
     numberTextScale: $("numberTextScale"),
     unitName: $("unitName"),
@@ -110,6 +256,49 @@
     infoText: $("infoText"),
     symbolSelect: $("symbolSelect"),
     customSymbolSelect: $("customSymbolSelect"),
+    natoSearch: $("natoSearch"),
+    natoCategory: $("natoCategory"),
+    natoResultSelect: $("natoResultSelect"),
+    natoSidc: $("natoSidc"),
+    natoFrame: $("natoFrame"),
+
+    shipTopLeft1Value: $("shipTopLeft1Value"),
+    shipTopLeft2Value: $("shipTopLeft2Value"),
+    shipCountry: $("shipCountry"),
+    shipTopRight1Value: $("shipTopRight1Value"),
+    shipTopRight2Value: $("shipTopRight2Value"),
+    shipLetter: $("shipLetter"),
+    shipBottomLeft1Value: $("shipBottomLeft1Value"),
+    shipBottomLeft2Value: $("shipBottomLeft2Value"),
+    shipType: $("shipType"),
+    shipBottomRight1Value: $("shipBottomRight1Value"),
+    shipBottomRight2Value: $("shipBottomRight2Value"),
+
+    shipTopLeft1Color: $("shipTopLeft1Color"),
+    shipTopLeft1Highlight: $("shipTopLeft1Highlight"),
+    shipTopLeft1HighlightColor: $("shipTopLeft1HighlightColor"),
+    shipTopLeft2Color: $("shipTopLeft2Color"),
+    shipTopLeft2Highlight: $("shipTopLeft2Highlight"),
+    shipTopLeft2HighlightColor: $("shipTopLeft2HighlightColor"),
+    shipTopRight1Color: $("shipTopRight1Color"),
+    shipTopRight1Highlight: $("shipTopRight1Highlight"),
+    shipTopRight1HighlightColor: $("shipTopRight1HighlightColor"),
+    shipTopRight2Color: $("shipTopRight2Color"),
+    shipTopRight2Highlight: $("shipTopRight2Highlight"),
+    shipTopRight2HighlightColor: $("shipTopRight2HighlightColor"),
+    shipBottomLeft1Color: $("shipBottomLeft1Color"),
+    shipBottomLeft1Highlight: $("shipBottomLeft1Highlight"),
+    shipBottomLeft1HighlightColor: $("shipBottomLeft1HighlightColor"),
+    shipBottomLeft2Color: $("shipBottomLeft2Color"),
+    shipBottomLeft2Highlight: $("shipBottomLeft2Highlight"),
+    shipBottomLeft2HighlightColor: $("shipBottomLeft2HighlightColor"),
+    shipBottomRight1Color: $("shipBottomRight1Color"),
+    shipBottomRight1Highlight: $("shipBottomRight1Highlight"),
+    shipBottomRight1HighlightColor: $("shipBottomRight1HighlightColor"),
+    shipBottomRight2Color: $("shipBottomRight2Color"),
+    shipBottomRight2Highlight: $("shipBottomRight2Highlight"),
+    shipBottomRight2HighlightColor: $("shipBottomRight2HighlightColor"),
+
     topLeftValue: $("topLeftValue"),
     topRightValue: $("topRightValue"),
     attackValue: $("attackValue"),
@@ -142,8 +331,18 @@
       "attackColor","attackHighlight","attackHighlightColor",
       "defenseColor","defenseHighlight","defenseHighlightColor",
       "moveColor","moveHighlight","moveHighlightColor",
-      "symbol","customSymbolId","size","bleed","safeInset","bg","stripeOrientation",
-      "stripePosition","stripeColor","border","text","symbolColor","labelTextScale","numberTextScale"
+      "shipTopLeft1","shipTopLeft2","shipCountry","shipTopRight1","shipTopRight2","shipLetter",
+      "shipBottomLeft1","shipBottomLeft2","shipType","shipBottomRight1","shipBottomRight2",
+      "shipTopLeft1Color","shipTopLeft1Highlight","shipTopLeft1HighlightColor",
+      "shipTopLeft2Color","shipTopLeft2Highlight","shipTopLeft2HighlightColor",
+      "shipTopRight1Color","shipTopRight1Highlight","shipTopRight1HighlightColor",
+      "shipTopRight2Color","shipTopRight2Highlight","shipTopRight2HighlightColor",
+      "shipBottomLeft1Color","shipBottomLeft1Highlight","shipBottomLeft1HighlightColor",
+      "shipBottomLeft2Color","shipBottomLeft2Highlight","shipBottomLeft2HighlightColor",
+      "shipBottomRight1Color","shipBottomRight1Highlight","shipBottomRight1HighlightColor",
+      "shipBottomRight2Color","shipBottomRight2Highlight","shipBottomRight2HighlightColor",
+      "symbol","customSymbolId","natoSidc","natoFrame","size","bleed","safeInset","bg","stripeOrientation",
+      "stripePosition","stripeColor","border","text","symbolColor","damageExplosion","damageExplosionColor","labelTextScale","numberTextScale"
     ];
     const side = {};
     for (const k of keys) side[k] = c[k];
@@ -157,6 +356,10 @@
     if (!["start","center","end"].includes(out.stripePosition)) out.stripePosition = "center";
     out.stripeColor ||= "#ffffff";
     out.symbolColor ||= "#000000";
+    out.natoSidc ||= "SFGPUCI-----";
+    out.natoFrame = !!out.natoFrame;
+    out.damageExplosion = !!out.damageExplosion;
+    out.damageExplosionColor ||= "#ff8a00";
     out.labelTextScale = Math.max(50, Math.min(200, Number(out.labelTextScale) || 100));
     out.numberTextScale = Math.max(50, Math.min(200, Number(out.numberTextScale) || 100));
     return out;
@@ -208,6 +411,7 @@
     controls.templateSelect.value = c.template || "classic";
     document.body.classList.toggle("template-sixValue", (c.template || "classic") === "sixValue");
     document.body.classList.toggle("template-information", (c.template || "classic") === "information");
+    document.body.classList.toggle("template-largeShip", (c.template || "classic") === "largeShip");
 
     controls.sizePreset.value = String(c.size);
     controls.quantityValue.value = String(Math.max(1, Math.floor(Number(base.quantity) || 1)));
@@ -218,14 +422,39 @@
     controls.borderColor.value = c.border;
     controls.textColor.value = c.text;
     controls.symbolColor.value = c.symbolColor || "#000000";
+    controls.damageExplosion.checked = !!c.damageExplosion;
+    controls.damageExplosionColor.value = c.damageExplosionColor || "#ff8a00";
     controls.labelTextScale.value = String(Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)));
     controls.numberTextScale.value = String(Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)));
     controls.unitName.value = c.name;
     controls.unitType.value = c.type;
     controls.infoText.value = c.infoText || "";
     controls.symbolSelect.value = c.symbol || "infantry";
+    document.body.classList.toggle("symbol-nato", c.symbol === "nato");
     renderCustomSymbolOptions();
     controls.customSymbolSelect.value = c.customSymbolId || "";
+    controls.natoSidc.value = c.natoSidc || "SFGPUCI-----";
+    controls.natoFrame.checked = !!c.natoFrame;
+    updateNatoStatus();
+    renderNatoSearchResults();
+
+    controls.shipTopLeft1Value.value = c.shipTopLeft1 || "";
+    controls.shipTopLeft2Value.value = c.shipTopLeft2 || "";
+    controls.shipCountry.value = (c.shipCountry || "").slice(0,2);
+    controls.shipTopRight1Value.value = c.shipTopRight1 || "";
+    controls.shipTopRight2Value.value = c.shipTopRight2 || "";
+    controls.shipLetter.value = (c.shipLetter || "").slice(0,1);
+    controls.shipBottomLeft1Value.value = c.shipBottomLeft1 || "";
+    controls.shipBottomLeft2Value.value = c.shipBottomLeft2 || "";
+    controls.shipType.value = (c.shipType || "").slice(0,2);
+    controls.shipBottomRight1Value.value = c.shipBottomRight1 || "";
+    controls.shipBottomRight2Value.value = c.shipBottomRight2 || "";
+
+    for (const key of ["shipTopLeft1","shipTopLeft2","shipTopRight1","shipTopRight2","shipBottomLeft1","shipBottomLeft2","shipBottomRight1","shipBottomRight2"]) {
+      controls[key + "Color"].value = c[key + "Color"] || "#111111";
+      controls[key + "Highlight"].checked = !!c[key + "Highlight"];
+      controls[key + "HighlightColor"].value = c[key + "HighlightColor"] || "#fff59d";
+    }
 
     controls.topLeftValue.value = c.topLeft || "";
     controls.topRightValue.value = c.topRight || "";
@@ -271,8 +500,13 @@
     c.template = controls.templateSelect.value || "classic";
     document.body.classList.toggle("template-sixValue", c.template === "sixValue");
     document.body.classList.toggle("template-information", c.template === "information");
+    document.body.classList.toggle("template-largeShip", c.template === "largeShip");
 
     c.size = Number(controls.sizePreset.value);
+    if (c.template === "largeShip" && c.size < 0.75) {
+      c.size = 0.75;
+      controls.sizePreset.value = "0.75";
+    }
     base.quantity = Math.max(1, Math.min(999, Math.floor(Number(controls.quantityValue.value) || 1)));
     controls.quantityValue.value = String(base.quantity);
     c.bg = controls.bgColor.value;
@@ -282,6 +516,8 @@
     c.border = controls.borderColor.value;
     c.text = controls.textColor.value;
     c.symbolColor = controls.symbolColor.value || "#000000";
+    c.damageExplosion = !!controls.damageExplosion.checked;
+    c.damageExplosionColor = controls.damageExplosionColor.value || "#ff8a00";
     c.labelTextScale = Math.max(50, Math.min(200, Number(controls.labelTextScale.value) || 100));
     controls.labelTextScale.value = String(c.labelTextScale);
     c.numberTextScale = Math.max(50, Math.min(200, Number(controls.numberTextScale.value) || 100));
@@ -290,7 +526,31 @@
     c.type = controls.unitType.value || "";
     c.infoText = controls.infoText.value || "";
     c.symbol = controls.symbolSelect.value;
+    document.body.classList.toggle("symbol-nato", c.symbol === "nato");
     c.customSymbolId = controls.customSymbolSelect.value || "";
+    c.natoSidc = (controls.natoSidc.value || "SFGPUCI-----").trim();
+    c.natoFrame = !!controls.natoFrame.checked;
+
+    c.shipTopLeft1 = controls.shipTopLeft1Value.value;
+    c.shipTopLeft2 = controls.shipTopLeft2Value.value;
+    c.shipCountry = (controls.shipCountry.value || "").toUpperCase().slice(0,2);
+    controls.shipCountry.value = c.shipCountry;
+    c.shipTopRight1 = controls.shipTopRight1Value.value;
+    c.shipTopRight2 = controls.shipTopRight2Value.value;
+    c.shipLetter = (controls.shipLetter.value || "").toUpperCase().slice(0,1);
+    controls.shipLetter.value = c.shipLetter;
+    c.shipBottomLeft1 = controls.shipBottomLeft1Value.value;
+    c.shipBottomLeft2 = controls.shipBottomLeft2Value.value;
+    c.shipType = (controls.shipType.value || "").toUpperCase().slice(0,2);
+    controls.shipType.value = c.shipType;
+    c.shipBottomRight1 = controls.shipBottomRight1Value.value;
+    c.shipBottomRight2 = controls.shipBottomRight2Value.value;
+
+    for (const key of ["shipTopLeft1","shipTopLeft2","shipTopRight1","shipTopRight2","shipBottomLeft1","shipBottomLeft2","shipBottomRight1","shipBottomRight2"]) {
+      c[key + "Color"] = controls[key + "Color"].value;
+      c[key + "Highlight"] = controls[key + "Highlight"].checked;
+      c[key + "HighlightColor"] = controls[key + "HighlightColor"].value;
+    }
 
     c.topLeft = controls.topLeftValue.value;
     c.topRight = controls.topRightValue.value;
@@ -352,18 +612,80 @@
     return `<div class="${cls}" style="background:${c.stripeColor || "#ffffff"}"></div>`;
   }
 
+  function natoRendererAvailable() {
+    return typeof window !== "undefined" && window.ms && typeof window.ms.Symbol === "function";
+  }
+
+  function updateNatoStatus() {
+    const el = $("natoStatus");
+    if (!el) return;
+    if (natoRendererAvailable()) {
+      el.textContent = `APP-6 renderer loaded. Search ${NATO_SYMBOL_CATALOG.length} common unit symbols or enter any supported SIDC.`;
+      el.classList.remove("warning");
+    } else {
+      el.textContent = "NATO symbols require an internet connection to load the APP-6 renderer.";
+      el.classList.add("warning");
+    }
+  }
+
+  function renderNatoSvg(c) {
+    if (!natoRendererAvailable()) return "";
+    const sidc = String(c?.natoSidc || "SFGPUCI-----").trim();
+    try {
+      const options = {
+        size: 100,
+        monoColor: c?.symbolColor || "#000000",
+        frame: !!c?.natoFrame,
+        fill: false,
+        infoFields: false,
+        outlineWidth: 0
+      };
+      return new window.ms.Symbol(sidc, options).asSVG();
+    } catch (err) {
+      console.warn("Could not render NATO SIDC", sidc, err);
+      return "";
+    }
+  }
+
   function getSymbolMarkup(c) {
     const symbolColor = c.symbolColor || "#000000";
     if (c.customSymbolId) {
       const s = (state.customSymbols || []).find(x => x.id === c.customSymbolId);
       if (s?.dataUrl) {
-        const url = escapeHtml(s.dataUrl);
+        const url = escapeHtml(s.maskDataUrl || s.dataUrl);
         return `<span class="custom-symbol-mask" style="background:${symbolColor};-webkit-mask-image:url('${url}');mask-image:url('${url}');"></span>`;
       }
     }
     if (!c.symbol) return "";
+    if (c.symbol === "nato") {
+      return renderNatoSvg(c);
+    }
     const svg = SYMBOLS[c.symbol] || SYMBOLS.infantry;
     return svg.replace(/currentColor/g, symbolColor);
+  }
+
+  function hasSymbol(c) {
+    return !!(c && (c.customSymbolId || c.symbol));
+  }
+
+  function damageExplosionDataUrl(color) {
+    const c = color || "#ff8a00";
+    const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+      <polygon fill="${c}" fill-opacity="0.58" points="50,3 58,20 75,8 73,28 95,25 82,40 98,50 82,60 95,75 73,72 75,92 58,80 50,97 42,80 25,92 27,72 5,75 18,60 2,50 18,40 5,25 27,28 25,8 42,20"/>
+      <polygon fill="${c}" fill-opacity="0.88" points="50,18 56,30 68,22 66,36 82,34 72,45 84,50 72,55 82,66 66,64 68,78 56,70 50,82 44,70 32,78 34,64 18,66 28,55 16,50 28,45 18,34 34,36 32,22 44,30"/>
+      <circle cx="50" cy="50" r="10" fill="white" fill-opacity="0.22"/>
+    </svg>`;
+    return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+  }
+
+  function explosionMarkup(c) {
+    if (!c?.damageExplosion || !hasSymbol(c)) return "";
+    const url = escapeHtml(damageExplosionDataUrl(c.damageExplosionColor || "#ff8a00"));
+    return `<span class="damage-explosion" style="background-image:url('${url}')"></span>`;
+  }
+
+  function symbolWithExplosionMarkup(c) {
+    return `${explosionMarkup(c)}${getSymbolMarkup(c)}`;
   }
 
   function readFileAsDataURL(file) {
@@ -375,6 +697,113 @@
     });
   }
 
+  function buildSymbolMaskDataUrl(dataUrl) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = Math.max(1, img.naturalWidth || img.width || 1);
+          canvas.height = Math.max(1, img.naturalHeight || img.height || 1);
+          const ctx = canvas.getContext("2d", {willReadFrequently:true});
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+
+          // If the source already contains real transparency, trust it.
+          // This preserves white-on-transparent artwork correctly.
+          let hasTransparency = false;
+          for (let i=3; i<data.length; i+=4) {
+            if (data[i] < 245) {
+              hasTransparency = true;
+              break;
+            }
+          }
+
+          if (hasTransparency) {
+            for (let i=0; i<data.length; i+=4) {
+              const a = data[i+3];
+              data[i] = 0;
+              data[i+1] = 0;
+              data[i+2] = 0;
+              data[i+3] = a;
+            }
+          } else {
+            // Opaque scans/images: estimate the background color from several
+            // corner samples, then turn pixels increasingly transparent as they
+            // approach that background. This removes white, cream, gray, etc.
+            const w = canvas.width, h = canvas.height;
+            const samples = [];
+            const points = [
+              [0,0], [w-1,0], [0,h-1], [w-1,h-1],
+              [Math.floor(w*.03), Math.floor(h*.03)],
+              [Math.floor(w*.97), Math.floor(h*.03)],
+              [Math.floor(w*.03), Math.floor(h*.97)],
+              [Math.floor(w*.97), Math.floor(h*.97)]
+            ];
+            for (const [x0,y0] of points) {
+              const x = Math.max(0, Math.min(w-1, x0));
+              const y = Math.max(0, Math.min(h-1, y0));
+              const idx = (y*w + x) * 4;
+              samples.push([data[idx], data[idx+1], data[idx+2]]);
+            }
+            const median = arr => {
+              const a = [...arr].sort((x,y)=>x-y);
+              return a[Math.floor(a.length/2)];
+            };
+            const bgR = median(samples.map(s=>s[0]));
+            const bgG = median(samples.map(s=>s[1]));
+            const bgB = median(samples.map(s=>s[2]));
+
+            // A low threshold eliminates near-background JPEG/scan noise while
+            // a soft ramp retains antialiased silhouette edges.
+            const transparentAt = 20;
+            const opaqueAt = 85;
+
+            for (let i=0; i<data.length; i+=4) {
+              const dr = data[i]   - bgR;
+              const dg = data[i+1] - bgG;
+              const db = data[i+2] - bgB;
+              const distance = Math.sqrt(dr*dr + dg*dg + db*db);
+
+              let alpha;
+              if (distance <= transparentAt) alpha = 0;
+              else if (distance >= opaqueAt) alpha = 255;
+              else alpha = Math.round(255 * (distance-transparentAt) / (opaqueAt-transparentAt));
+
+              data[i] = 0;
+              data[i+1] = 0;
+              data[i+2] = 0;
+              data[i+3] = alpha;
+            }
+          }
+
+          ctx.putImageData(imageData, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        } catch (err) {
+          reject(err);
+        }
+      };
+      img.onerror = () => reject(new Error("Could not prepare the imported silhouette."));
+      img.src = dataUrl;
+    });
+  }
+
+  async function ensureCustomSymbolMasks() {
+    state.customSymbols ||= [];
+    for (const symbol of state.customSymbols) {
+      if (!symbol?.dataUrl || symbol.maskDataUrl) continue;
+      try {
+        symbol.maskDataUrl = await buildSymbolMaskDataUrl(symbol.dataUrl);
+      } catch (err) {
+        console.warn("Could not normalize imported symbol:", symbol?.name, err);
+        symbol.maskDataUrl = symbol.dataUrl;
+      }
+    }
+  }
+
   function counterMarkup(c, pxPerInch, showGuides = true) {
     const sizePx = c.size * pxPerInch;
     const bleedPx = c.bleed * pxPerInch;
@@ -383,21 +812,41 @@
     const template = c.template || "classic";
     const labelScale = Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)) / 100;
     const numberScale = Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)) / 100;
-    const artClass = template === "sixValue" ? "counter-art six-template" : "counter-art";
+    const artClass = template === "sixValue"
+      ? "counter-art six-template"
+      : (template === "largeShip" ? "counter-art large-ship-template" : "counter-art");
 
     let content = "";
     if (template === "sixValue") {
       content = `
         <div class="top-stat left" style="font-size:${Math.max(6, sizePx * .11 * numberScale)}px">${numberMarkup(c.topLeft || "", c.topLeftColor, c.topLeftHighlight, c.topLeftHighlightColor)}</div>
         <div class="top-stat right" style="font-size:${Math.max(6, sizePx * .11 * numberScale)}px">${numberMarkup(c.topRight || "", c.topRightColor, c.topRightHighlight, c.topRightHighlightColor)}</div>
-        <div class="symbol-wrap">${getSymbolMarkup(c)}</div>
+        <div class="symbol-wrap">${symbolWithExplosionMarkup(c)}</div>
         <div class="unit-name" style="font-size:${Math.max(6, sizePx * .085 * labelScale)}px">${escapeHtml(c.name || "")}</div>
         <div class="stat attack" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.attack || "", c.attackColor, c.attackHighlight, c.attackHighlightColor)}</div>
         <div class="stat defense" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.defense || "", c.defenseColor, c.defenseHighlight, c.defenseHighlightColor)}</div>
         <div class="stat move" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.move || "", c.moveColor, c.moveHighlight, c.moveHighlightColor)}</div>`;
+    } else if (template === "largeShip") {
+      content = `
+        <div class="ship-top-stat ship-tl1" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipTopLeft1 || "", c.shipTopLeft1Color, c.shipTopLeft1Highlight, c.shipTopLeft1HighlightColor)}</div>
+        <div class="ship-top-stat ship-tl2" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipTopLeft2 || "", c.shipTopLeft2Color, c.shipTopLeft2Highlight, c.shipTopLeft2HighlightColor)}</div>
+        <div class="ship-country" style="font-size:${Math.max(6, sizePx * .09 * labelScale)}px">${escapeHtml((c.shipCountry || "").slice(0,2))}</div>
+        <div class="ship-top-stat ship-tr1" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipTopRight1 || "", c.shipTopRight1Color, c.shipTopRight1Highlight, c.shipTopRight1HighlightColor)}</div>
+        <div class="ship-top-stat ship-tr2" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipTopRight2 || "", c.shipTopRight2Color, c.shipTopRight2Highlight, c.shipTopRight2HighlightColor)}</div>
+
+        <div class="symbol-wrap ship-symbol">${symbolWithExplosionMarkup(c)}</div>
+
+        <div class="ship-name" style="font-size:${Math.max(6, sizePx * .078 * labelScale)}px">${escapeHtml(c.name || "")}</div>
+        <div class="ship-letter" style="font-size:${Math.max(6, sizePx * .09 * labelScale)}px">${escapeHtml((c.shipLetter || "").slice(0,1))}</div>
+
+        <div class="ship-bottom-stat ship-bl1" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipBottomLeft1 || "", c.shipBottomLeft1Color, c.shipBottomLeft1Highlight, c.shipBottomLeft1HighlightColor)}</div>
+        <div class="ship-bottom-stat ship-bl2" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipBottomLeft2 || "", c.shipBottomLeft2Color, c.shipBottomLeft2Highlight, c.shipBottomLeft2HighlightColor)}</div>
+        <div class="ship-type-code" style="font-size:${Math.max(6, sizePx * .09 * labelScale)}px">${escapeHtml((c.shipType || "").slice(0,2))}</div>
+        <div class="ship-bottom-stat ship-br1" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipBottomRight1 || "", c.shipBottomRight1Color, c.shipBottomRight1Highlight, c.shipBottomRight1HighlightColor)}</div>
+        <div class="ship-bottom-stat ship-br2" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipBottomRight2 || "", c.shipBottomRight2Color, c.shipBottomRight2Highlight, c.shipBottomRight2HighlightColor)}</div>`;
     } else if (template === "information") {
       const hasImage = !!(c.customSymbolId || c.symbol);
-      const imageMarkup = hasImage ? `<div class="symbol-wrap">${getSymbolMarkup(c)}</div>` : "";
+      const imageMarkup = hasImage ? `<div class="symbol-wrap">${symbolWithExplosionMarkup(c)}</div>` : "";
       const infoClass = hasImage ? "counter-art info-template" : "counter-art info-template no-image";
       content = `
         ${imageMarkup}
@@ -412,7 +861,7 @@
     } else {
       content = `
         <div class="unit-name" style="font-size:${Math.max(6, sizePx * .11 * labelScale)}px">${escapeHtml(c.name || "")}</div>
-        <div class="symbol-wrap">${getSymbolMarkup(c)}</div>
+        <div class="symbol-wrap">${symbolWithExplosionMarkup(c)}</div>
         <div class="unit-type" style="font-size:${Math.max(5, sizePx * .075 * labelScale)}px">${escapeHtml(c.type || "")}</div>
         <div class="stat attack" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.attack || "", c.attackColor, c.attackHighlight, c.attackHighlightColor)}</div>
         <div class="stat defense" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.defense || "", c.defenseColor, c.defenseHighlight, c.defenseHighlightColor)}</div>
@@ -539,6 +988,20 @@
     return expanded;
   }
 
+  function podSizeKey() {
+    const raw = String(state.sheet.superiorPodSize || "0.625");
+    return ["0.625","0.75","1"].includes(raw) ? raw : "0.625";
+  }
+
+  function currentPodTemplate() {
+    return SUPERIOR_POD_TEMPLATES[podSizeKey()] || SUPERIOR_POD_TEMPLATES["0.625"];
+  }
+
+  function podEligibleCounters() {
+    const target = Number(podSizeKey());
+    return state.counters.filter(c => Math.abs(Number(c.size) - target) < 0.0001);
+  }
+
   function podSlotCount() {
     return superiorFrontSlots().length;
   }
@@ -547,18 +1010,47 @@
     return Array(podSlotCount()).fill(null);
   }
 
+  function getPodManualLayout() {
+    state.sheet.superiorManualLayouts ||= {};
+
+    // Migrate the pre-v0.38 5/8 layout the first time a project is used here.
+    if (!state.sheet.superiorManualLayouts["0.625"] &&
+        Array.isArray(state.sheet.superiorManualPages) &&
+        state.sheet.superiorManualPages.length) {
+      state.sheet.superiorManualLayouts["0.625"] = {
+        pages: state.sheet.superiorManualPages,
+        pageIndex: Number(state.sheet.superiorManualPageIndex) || 0,
+        selectedSlotIndex: Number(state.sheet.superiorSelectedSlotIndex) || 0
+      };
+    }
+
+    const key = podSizeKey();
+    state.sheet.superiorManualLayouts[key] ||= {
+      pages: [],
+      pageIndex: 0,
+      selectedSlotIndex: 0
+    };
+    return state.sheet.superiorManualLayouts[key];
+  }
+
   function ensurePodManualPages() {
-    state.sheet.superiorManualPages ||= [];
-    if (!state.sheet.superiorManualPages.length) state.sheet.superiorManualPages = [blankPodPage()];
-    state.sheet.superiorManualPages = state.sheet.superiorManualPages.map(page => {
+    const layout = getPodManualLayout();
+    if (!Array.isArray(layout.pages) || !layout.pages.length) layout.pages = [blankPodPage()];
+    layout.pages = layout.pages.map(page => {
       const p = Array.isArray(page) ? page.slice(0, podSlotCount()) : [];
       while (p.length < podSlotCount()) p.push(null);
       return p;
     });
-    state.sheet.superiorManualPageIndex = Math.max(
-      0,
-      Math.min(Number(state.sheet.superiorManualPageIndex) || 0, state.sheet.superiorManualPages.length - 1)
-    );
+    layout.pageIndex = Math.max(0, Math.min(Number(layout.pageIndex) || 0, layout.pages.length - 1));
+    layout.selectedSlotIndex = Math.max(0, Math.min(Number(layout.selectedSlotIndex) || 0, podSlotCount() - 1));
+
+    // Keep legacy fields synchronized for backward-compatible saves.
+    if (podSizeKey() === "0.625") {
+      state.sheet.superiorManualPages = layout.pages;
+      state.sheet.superiorManualPageIndex = layout.pageIndex;
+      state.sheet.superiorSelectedSlotIndex = layout.selectedSlotIndex;
+    }
+    return layout;
   }
 
   function counterQuantity(c) {
@@ -566,9 +1058,9 @@
   }
 
   function podAssignedCounts() {
-    ensurePodManualPages();
+    const layout = ensurePodManualPages();
     const counts = new Map();
-    for (const page of state.sheet.superiorManualPages) {
+    for (const page of layout.pages) {
       for (const id of page) {
         if (!id) continue;
         counts.set(id, (counts.get(id) || 0) + 1);
@@ -579,7 +1071,8 @@
 
   function seedPodManualLayout(groupByColor=false) {
     let expanded = [];
-    for (const c of state.counters) {
+    const eligible = podEligibleCounters();
+    for (const c of eligible) {
       for (let i=0; i<counterQuantity(c); i++) expanded.push(c);
     }
 
@@ -593,15 +1086,17 @@
 
     const perSheet = podSlotCount();
     const pageCount = Math.max(1, Math.ceil(expanded.length / perSheet));
-    state.sheet.superiorManualPages = Array.from({length:pageCount}, () => blankPodPage());
+    const layout = getPodManualLayout();
+    layout.pages = Array.from({length:pageCount}, () => blankPodPage());
 
     expanded.forEach((c,i) => {
       const p = Math.floor(i/perSheet);
       const slot = i % perSheet;
-      state.sheet.superiorManualPages[p][slot] = c.id;
+      layout.pages[p][slot] = c.id;
     });
 
-    state.sheet.superiorManualPageIndex = 0;
+    layout.pageIndex = 0;
+    layout.selectedSlotIndex = 0;
     renderPodLayoutPlanner();
   }
 
@@ -609,9 +1104,18 @@
     const box = $("podUsageSummary");
     if (!box) return;
     const counts = podAssignedCounts();
+    const eligible = podEligibleCounters();
     box.innerHTML = "";
 
-    for (const c of state.counters) {
+    if (!eligible.length) {
+      const msg = document.createElement("span");
+      msg.className = "pod-usage-chip missing";
+      msg.textContent = `No ${currentPodTemplate().label} counters are defined in this project.`;
+      box.appendChild(msg);
+      return;
+    }
+
+    for (const c of eligible) {
       const used = counts.get(c.id) || 0;
       const qty = counterQuantity(c);
       const chip = document.createElement("span");
@@ -624,8 +1128,9 @@
   }
 
   function podPlannerScale() {
-    // Exact 18x12 proportions, scaled to a practical on-screen width.
-    return 1037 / SUPERIOR_POD.pageWidthPt;
+    const tpl = currentPodTemplate();
+    // Fit the longest page dimension into ~1037 CSS pixels while preserving exact proportions.
+    return Math.min(1037 / tpl.pageWidthPt, 1037 / tpl.pageHeightPt);
   }
 
   function podShortName(c) {
@@ -635,11 +1140,11 @@
   }
 
   function renderPodSelectedSlotEditor() {
-    ensurePodManualPages();
-    const idx = Math.max(0, Math.min(podSlotCount()-1, Number(state.sheet.superiorSelectedSlotIndex) || 0));
-    state.sheet.superiorSelectedSlotIndex = idx;
+    const layout = ensurePodManualPages();
+    const idx = Math.max(0, Math.min(podSlotCount()-1, Number(layout.selectedSlotIndex) || 0));
+    layout.selectedSlotIndex = idx;
 
-    const page = state.sheet.superiorManualPages[state.sheet.superiorManualPageIndex];
+    const page = layout.pages[layout.pageIndex];
     const currentId = page[idx] || "";
 
     $("podSelectedSlotLabel").textContent = `Selected slot: ${idx+1}`;
@@ -652,7 +1157,7 @@
     empty.textContent = "— Empty —";
     select.appendChild(empty);
 
-    state.counters.forEach((c,index) => {
+    podEligibleCounters().forEach((c,index) => {
       const opt = document.createElement("option");
       opt.value = c.id;
       opt.textContent = `${index+1}. ${c.name} ×${counterQuantity(c)} · ${c.bg || ""}`;
@@ -666,19 +1171,51 @@
     const sheet = $("podExactSheet");
     if (!sheet) return;
 
-    // Keep the permanent labels, clear generated slots.
     sheet.querySelectorAll(".pod-exact-slot,.pod-exact-sheet-midline").forEach(el => el.remove());
 
+    const tpl = currentPodTemplate();
+    const scale = podPlannerScale();
+    sheet.style.width = `${tpl.pageWidthPt * scale}px`;
+    sheet.style.height = `${tpl.pageHeightPt * scale}px`;
+    sheet.style.minWidth = `${tpl.pageWidthPt * scale}px`;
+
+    const frontLabel = $("podFrontLabel");
+    const backLabel = $("podBackLabel");
     const midline = document.createElement("div");
     midline.className = "pod-exact-sheet-midline";
+
+    if (tpl.layout === "sideBySide") {
+      frontLabel.textContent = "FRONTS";
+      backLabel.textContent = "LINKED BACKS";
+      frontLabel.style.left = "26px";
+      frontLabel.style.top = "10px";
+      backLabel.style.left = `${tpl.pageWidthPt * scale * .53}px`;
+      backLabel.style.top = "10px";
+      midline.style.left = `${tpl.pageWidthPt * scale / 2}px`;
+      midline.style.top = "0";
+      midline.style.bottom = "0";
+      midline.style.width = "1px";
+      midline.style.height = "auto";
+    } else {
+      frontLabel.textContent = "FRONTS";
+      backLabel.textContent = "LINKED BACKS";
+      frontLabel.style.left = "18px";
+      frontLabel.style.top = "8px";
+      backLabel.style.left = "18px";
+      backLabel.style.top = `${tpl.backLabelY * scale}px`;
+      midline.style.left = "0";
+      midline.style.top = `${tpl.midlineY * scale}px`;
+      midline.style.width = "100%";
+      midline.style.height = "1px";
+      midline.style.bottom = "auto";
+    }
     sheet.appendChild(midline);
 
-    ensurePodManualPages();
-    const page = state.sheet.superiorManualPages[state.sheet.superiorManualPageIndex];
+    const layout = ensurePodManualPages();
+    const page = layout.pages[layout.pageIndex];
     const slots = superiorFrontSlots();
-    const scale = podPlannerScale();
-    const slotSize = SUPERIOR_POD.counterPt * scale;
-    const selected = Number(state.sheet.superiorSelectedSlotIndex) || 0;
+    const slotSize = tpl.counterPt * scale;
+    const selected = Number(layout.selectedSlotIndex) || 0;
 
     slots.forEach((slot, i) => {
       const id = page[i] || null;
@@ -694,7 +1231,8 @@
       front.title = c ? `Slot ${i+1}: ${c.name}` : `Slot ${i+1}: Empty`;
       front.innerHTML = `<span class="pod-exact-slot-number">${i+1}</span><span class="pod-exact-slot-name">${escapeHtml(podShortName(c) || "Empty")}</span>`;
       front.addEventListener("click", () => {
-        state.sheet.superiorSelectedSlotIndex = i;
+        const active = getPodManualLayout();
+        active.selectedSlotIndex = i;
         renderPodExactSheet();
         renderPodSelectedSlotEditor();
       });
@@ -722,7 +1260,6 @@
     });
   }
 
-
   function renderPodLayoutPlanner() {
     const planner = $("podLayoutPlanner");
     if (!planner) return;
@@ -731,12 +1268,13 @@
     planner.hidden = !manual;
     if (!manual) return;
 
-    ensurePodManualPages();
-    const idx = state.sheet.superiorManualPageIndex;
-    $("podPageLabel").textContent = `Sheet ${idx+1} of ${state.sheet.superiorManualPages.length}`;
+    const layout = ensurePodManualPages();
+    const idx = layout.pageIndex;
+    const tpl = currentPodTemplate();
+    $("podPageLabel").textContent = `${tpl.label} · Sheet ${idx+1} of ${layout.pages.length}`;
     $("podPrevPageBtn").disabled = idx <= 0;
-    $("podNextPageBtn").disabled = idx >= state.sheet.superiorManualPages.length - 1;
-    $("podRemovePageBtn").disabled = state.sheet.superiorManualPages.length <= 1;
+    $("podNextPageBtn").disabled = idx >= layout.pages.length - 1;
+    $("podRemovePageBtn").disabled = layout.pages.length <= 1;
 
     renderPodUsageSummary();
     renderPodSelectedSlotEditor();
@@ -744,11 +1282,10 @@
   }
 
   function podManualValidation() {
-    ensurePodManualPages();
     const counts = podAssignedCounts();
     const over = [];
     const missing = [];
-    for (const c of state.counters) {
+    for (const c of podEligibleCounters()) {
       const used = counts.get(c.id) || 0;
       const qty = counterQuantity(c);
       if (used > qty) over.push(`${c.name}: ${used}/${qty}`);
@@ -758,18 +1295,18 @@
   }
 
   function manualPodPlacements() {
-    ensurePodManualPages();
+    const layout = ensurePodManualPages();
     const slots = superiorFrontSlots();
     const pages = [];
 
-    for (const page of state.sheet.superiorManualPages) {
+    for (const page of layout.pages) {
       const counters = [];
       const usedSlots = [];
       for (let i=0; i<page.length && i<slots.length; i++) {
         const id = page[i];
         if (!id) continue;
         const c = state.counters.find(x => x.id === id);
-        if (!c) continue;
+        if (!c || Math.abs(Number(c.size) - Number(podSizeKey())) > 0.0001) continue;
         counters.push(c);
         usedSlots.push(slots[i]);
       }
@@ -880,6 +1417,22 @@
     ctl.addEventListener("change", updateCounterFromControls);
   }
 
+  $("natoSearch").addEventListener("input", renderNatoSearchResults);
+  $("natoCategory").addEventListener("change", renderNatoSearchResults);
+  $("natoResultSelect").addEventListener("change", () => {
+    const sidc = $("natoResultSelect").value;
+    if (!sidc) return;
+    $("natoSidc").value = sidc;
+    updateCounterFromControls();
+    renderNatoSearchResults();
+  });
+  $("natoSidc").addEventListener("input", renderNatoSearchResults);
+
+  window.addEventListener("load", () => {
+    updateNatoStatus();
+    renderNatoSearchResults();
+  });
+
   $("zoomSelect").addEventListener("change", renderPreview);
   $("showGuidesCheck").addEventListener("change", renderPreview);
 
@@ -944,81 +1497,102 @@
   });
   $("cropMarksCheck").addEventListener("change", () => { state.sheet.cropMarks = $("cropMarksCheck").checked; renderSheet(); });
   $("sheetGuidesCheck").addEventListener("change", () => { state.sheet.guides = $("sheetGuidesCheck").checked; renderSheet(); });
-  $("superiorBackMode").addEventListener("change", () => { state.sheet.superiorBackMode = $("superiorBackMode").value; });
+  $("superiorPodSize").addEventListener("change", () => {
+    state.sheet.superiorPodSize = $("superiorPodSize").value || "0.625";
+    ensurePodManualPages();
+    renderPodLayoutPlanner();
+  });
+
+  $("superiorBackMode").addEventListener("change", () => {
+    state.sheet.superiorBackMode = $("superiorBackMode").value;
+    renderPodLayoutPlanner();
+  });
+
   $("superiorLayoutMode").addEventListener("change", () => {
     state.sheet.superiorLayoutMode = $("superiorLayoutMode").value;
     if (state.sheet.superiorLayoutMode === "manual") {
-      ensurePodManualPages();
-      const hasAssignments = state.sheet.superiorManualPages.some(p => p.some(Boolean));
+      const layout = ensurePodManualPages();
+      const hasAssignments = layout.pages.some(p => p.some(Boolean));
       if (!hasAssignments) seedPodManualLayout(false);
+      else renderPodLayoutPlanner();
+    } else {
+      renderPodLayoutPlanner();
     }
-    renderSheet();
   });
 
   $("podSelectedSlotCounter").addEventListener("change", () => {
-    ensurePodManualPages();
-    const page = state.sheet.superiorManualPages[state.sheet.superiorManualPageIndex];
-    const slotIndex = Math.max(0, Math.min(podSlotCount()-1, Number(state.sheet.superiorSelectedSlotIndex) || 0));
+    const layout = ensurePodManualPages();
+    const page = layout.pages[layout.pageIndex];
+    const slotIndex = Math.max(0, Math.min(podSlotCount()-1, Number(layout.selectedSlotIndex) || 0));
     page[slotIndex] = $("podSelectedSlotCounter").value || null;
     renderPodUsageSummary();
     renderPodExactSheet();
   });
 
   $("podClearSelectedSlotBtn").addEventListener("click", () => {
-    ensurePodManualPages();
-    const page = state.sheet.superiorManualPages[state.sheet.superiorManualPageIndex];
-    const slotIndex = Math.max(0, Math.min(podSlotCount()-1, Number(state.sheet.superiorSelectedSlotIndex) || 0));
+    const layout = ensurePodManualPages();
+    const page = layout.pages[layout.pageIndex];
+    const slotIndex = Math.max(0, Math.min(podSlotCount()-1, Number(layout.selectedSlotIndex) || 0));
     page[slotIndex] = null;
-    renderPodSelectedSlotEditor();
     renderPodUsageSummary();
+    renderPodSelectedSlotEditor();
     renderPodExactSheet();
   });
 
   $("podSeedOrderBtn").addEventListener("click", () => {
-    if (state.sheet.superiorManualPages?.some(p => p.some(Boolean)) &&
-        !confirm("Replace the current manual POD layout with the counter-list order?")) return;
+    const layout = ensurePodManualPages();
+    if (layout.pages?.some(p => p.some(Boolean)) &&
+        !confirm("Replace the current manual layout for this counter size with counter-list order?")) return;
     seedPodManualLayout(false);
   });
+
   $("podSeedColorBtn").addEventListener("click", () => {
-    if (state.sheet.superiorManualPages?.some(p => p.some(Boolean)) &&
-        !confirm("Replace the current manual POD layout with a color-grouped layout?")) return;
+    const layout = ensurePodManualPages();
+    if (layout.pages?.some(p => p.some(Boolean)) &&
+        !confirm("Replace the current manual layout for this counter size with a color-grouped layout?")) return;
     seedPodManualLayout(true);
   });
+
   $("podPrevPageBtn").addEventListener("click", () => {
-    ensurePodManualPages();
-    state.sheet.superiorManualPageIndex = Math.max(0, state.sheet.superiorManualPageIndex - 1);
-    state.sheet.superiorSelectedSlotIndex = 0;
+    const layout = ensurePodManualPages();
+    layout.pageIndex = Math.max(0, layout.pageIndex - 1);
+    layout.selectedSlotIndex = 0;
     renderPodLayoutPlanner();
   });
+
   $("podNextPageBtn").addEventListener("click", () => {
-    ensurePodManualPages();
-    state.sheet.superiorManualPageIndex = Math.min(state.sheet.superiorManualPages.length - 1, state.sheet.superiorManualPageIndex + 1);
-    state.sheet.superiorSelectedSlotIndex = 0;
+    const layout = ensurePodManualPages();
+    layout.pageIndex = Math.min(layout.pages.length - 1, layout.pageIndex + 1);
+    layout.selectedSlotIndex = 0;
     renderPodLayoutPlanner();
   });
+
   $("podAddPageBtn").addEventListener("click", () => {
-    ensurePodManualPages();
-    state.sheet.superiorManualPages.push(blankPodPage());
-    state.sheet.superiorManualPageIndex = state.sheet.superiorManualPages.length - 1;
-    state.sheet.superiorSelectedSlotIndex = 0;
+    const layout = ensurePodManualPages();
+    layout.pages.push(blankPodPage());
+    layout.pageIndex = layout.pages.length - 1;
+    layout.selectedSlotIndex = 0;
     renderPodLayoutPlanner();
   });
+
   $("podClearPageBtn").addEventListener("click", () => {
-    ensurePodManualPages();
-    const idx = state.sheet.superiorManualPageIndex;
-    if (state.sheet.superiorManualPages[idx].some(Boolean) &&
-        !confirm(`Clear all assignments from POD sheet ${idx+1}?`)) return;
-    state.sheet.superiorManualPages[idx] = blankPodPage();
+    const layout = ensurePodManualPages();
+    const idx = layout.pageIndex;
+    if (layout.pages[idx].some(Boolean) &&
+        !confirm("Clear all assigned counters from this POD sheet?")) return;
+    layout.pages[idx] = blankPodPage();
     renderPodLayoutPlanner();
   });
+
   $("podRemovePageBtn").addEventListener("click", () => {
-    ensurePodManualPages();
-    if (state.sheet.superiorManualPages.length <= 1) return;
-    const idx = state.sheet.superiorManualPageIndex;
-    if (state.sheet.superiorManualPages[idx].some(Boolean) &&
-        !confirm(`Remove POD sheet ${idx+1} and all assignments on it?`)) return;
-    state.sheet.superiorManualPages.splice(idx,1);
-    state.sheet.superiorManualPageIndex = Math.min(idx, state.sheet.superiorManualPages.length - 1);
+    const layout = ensurePodManualPages();
+    if (layout.pages.length <= 1) return;
+    const idx = layout.pageIndex;
+    if (layout.pages[idx].some(Boolean) &&
+        !confirm("Remove this POD sheet and its slot assignments?")) return;
+    layout.pages.splice(idx,1);
+    layout.pageIndex = Math.min(idx, layout.pages.length - 1);
+    layout.selectedSlotIndex = 0;
     renderPodLayoutPlanner();
   });
 
@@ -1031,6 +1605,8 @@
     state.sheet.superiorManualPages = [];
     state.sheet.superiorManualPageIndex = 0;
     state.sheet.superiorSelectedSlotIndex = 0;
+    state.sheet.superiorManualLayouts = {};
+    state.sheet.superiorPodSize = "0.625";
     state.selectedId = state.counters[0].id;
     syncControlsFromCounter();
     renderAll();
@@ -1052,6 +1628,7 @@
     $("gutterSelect").value = String(state.sheet.gutter);
     $("cropMarksCheck").checked = !!state.sheet.cropMarks;
     $("sheetGuidesCheck").checked = !!state.sheet.guides;
+    $("superiorPodSize").value = podSizeKey();
     $("superiorBackMode").value = state.sheet.superiorBackMode || "blank";
     $("superiorLayoutMode").value = state.sheet.superiorLayoutMode || "auto";
     renderPodLayoutPlanner();
@@ -1067,28 +1644,47 @@
       const custom = (state.customSymbols || []).find(s => s.id === c.customSymbolId);
       if (custom) return custom.name;
     }
+    if (c.symbol === "nato") return "NATO / APP-6";
     return c.symbol || "";
   }
 
   $("exportCsvBtn").addEventListener("click", () => {
     const headers = [
       "Counter Number","Quantity","Template","Counter Size (in)","Background Color","Stripe Orientation","Stripe Color","Border Color","Main Text Color","Label Font Size (%)","Number Font Size (%)",
-      "Unit Name","Unit Type","Information Text","Symbol","Symbol Color",
+      "Unit Name","Unit Type","Information Text","Symbol","Symbol Color","NATO SIDC","NATO Frame","Damage Explosion","Damage Explosion Color",
       "Top Left","Top Left Text Color","Top Left Highlight","Top Left Highlight Color",
       "Top Right","Top Right Text Color","Top Right Highlight","Top Right Highlight Color",
       "Bottom Left","Bottom Left Text Color","Bottom Left Highlight","Bottom Left Highlight Color",
       "Bottom Center","Bottom Center Text Color","Bottom Center Highlight","Bottom Center Highlight Color",
-      "Bottom Right","Bottom Right Text Color","Bottom Right Highlight","Bottom Right Highlight Color"
+      "Bottom Right","Bottom Right Text Color","Bottom Right Highlight","Bottom Right Highlight Color",
+      "Ship Country","Ship Letter","Ship Type",
+      "Ship Top Left 1","Ship Top Left 1 Color","Ship Top Left 1 Highlight","Ship Top Left 1 Highlight Color",
+      "Ship Top Left 2","Ship Top Left 2 Color","Ship Top Left 2 Highlight","Ship Top Left 2 Highlight Color",
+      "Ship Top Right 1","Ship Top Right 1 Color","Ship Top Right 1 Highlight","Ship Top Right 1 Highlight Color",
+      "Ship Top Right 2","Ship Top Right 2 Color","Ship Top Right 2 Highlight","Ship Top Right 2 Highlight Color",
+      "Ship Bottom Left 1","Ship Bottom Left 1 Color","Ship Bottom Left 1 Highlight","Ship Bottom Left 1 Highlight Color",
+      "Ship Bottom Left 2","Ship Bottom Left 2 Color","Ship Bottom Left 2 Highlight","Ship Bottom Left 2 Highlight Color",
+      "Ship Bottom Right 1","Ship Bottom Right 1 Color","Ship Bottom Right 1 Highlight","Ship Bottom Right 1 Highlight Color",
+      "Ship Bottom Right 2","Ship Bottom Right 2 Color","Ship Bottom Right 2 Highlight","Ship Bottom Right 2 Highlight Color"
     ];
 
     const rows = state.counters.map((c, index) => [
       index + 1, Math.max(1, Math.floor(Number(c.quantity) || 1)), c.template || "classic", c.size ?? "", c.bg || "", c.stripeOrientation || "none", c.stripeColor || "#ffffff", c.border || "", c.text || "", Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)), Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)),
-      c.name || "", c.type || "", c.infoText || "", exportedSymbolName(c), c.symbolColor || "#000000",
+      c.name || "", c.type || "", c.infoText || "", exportedSymbolName(c), c.symbolColor || "#000000", c.natoSidc || "", c.natoFrame ? "Yes" : "No", c.damageExplosion ? "Yes" : "No", c.damageExplosionColor || "#ff8a00",
       c.topLeft || "", c.topLeftColor || "#111111", c.topLeftHighlight ? "Yes" : "No", c.topLeftHighlightColor || "",
       c.topRight || "", c.topRightColor || "#111111", c.topRightHighlight ? "Yes" : "No", c.topRightHighlightColor || "",
       c.attack || "", c.attackColor || "#111111", c.attackHighlight ? "Yes" : "No", c.attackHighlightColor || "",
       c.defense || "", c.defenseColor || "#111111", c.defenseHighlight ? "Yes" : "No", c.defenseHighlightColor || "",
-      c.move || "", c.moveColor || "#111111", c.moveHighlight ? "Yes" : "No", c.moveHighlightColor || ""
+      c.move || "", c.moveColor || "#111111", c.moveHighlight ? "Yes" : "No", c.moveHighlightColor || "",
+      c.shipCountry || "", c.shipLetter || "", c.shipType || "",
+      c.shipTopLeft1 || "", c.shipTopLeft1Color || "#111111", c.shipTopLeft1Highlight ? "Yes" : "No", c.shipTopLeft1HighlightColor || "",
+      c.shipTopLeft2 || "", c.shipTopLeft2Color || "#111111", c.shipTopLeft2Highlight ? "Yes" : "No", c.shipTopLeft2HighlightColor || "",
+      c.shipTopRight1 || "", c.shipTopRight1Color || "#111111", c.shipTopRight1Highlight ? "Yes" : "No", c.shipTopRight1HighlightColor || "",
+      c.shipTopRight2 || "", c.shipTopRight2Color || "#111111", c.shipTopRight2Highlight ? "Yes" : "No", c.shipTopRight2HighlightColor || "",
+      c.shipBottomLeft1 || "", c.shipBottomLeft1Color || "#111111", c.shipBottomLeft1Highlight ? "Yes" : "No", c.shipBottomLeft1HighlightColor || "",
+      c.shipBottomLeft2 || "", c.shipBottomLeft2Color || "#111111", c.shipBottomLeft2Highlight ? "Yes" : "No", c.shipBottomLeft2HighlightColor || "",
+      c.shipBottomRight1 || "", c.shipBottomRight1Color || "#111111", c.shipBottomRight1Highlight ? "Yes" : "No", c.shipBottomRight1HighlightColor || "",
+      c.shipBottomRight2 || "", c.shipBottomRight2Color || "#111111", c.shipBottomRight2Highlight ? "Yes" : "No", c.shipBottomRight2HighlightColor || ""
     ]);
 
     const csvText = [headers, ...rows].map(row => row.map(csvEscape).join(",")).join("\r\n");
@@ -1100,6 +1696,297 @@
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   });
 
+
+  function parseCsv(text) {
+    const rows = [];
+    let row = [];
+    let field = "";
+    let inQuotes = false;
+
+    const src = String(text || "").replace(/^\uFEFF/, "");
+    for (let i=0; i<src.length; i++) {
+      const ch = src[i];
+
+      if (inQuotes) {
+        if (ch === '"') {
+          if (src[i+1] === '"') {
+            field += '"';
+            i++;
+          } else {
+            inQuotes = false;
+          }
+        } else {
+          field += ch;
+        }
+        continue;
+      }
+
+      if (ch === '"') {
+        inQuotes = true;
+      } else if (ch === ",") {
+        row.push(field);
+        field = "";
+      } else if (ch === "\r") {
+        if (src[i+1] === "\n") i++;
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = "";
+      } else if (ch === "\n") {
+        row.push(field);
+        rows.push(row);
+        row = [];
+        field = "";
+      } else {
+        field += ch;
+      }
+    }
+
+    if (field.length || row.length) {
+      row.push(field);
+      rows.push(row);
+    }
+
+    return rows.filter(r => r.some(v => String(v).trim() !== ""));
+  }
+
+  function csvBool(value, fallback=false) {
+    const s = String(value ?? "").trim().toLowerCase();
+    if (!s) return fallback;
+    if (["yes","y","true","1","on"].includes(s)) return true;
+    if (["no","n","false","0","off"].includes(s)) return false;
+    return fallback;
+  }
+
+  function csvColor(value, fallback) {
+    const s = String(value ?? "").trim();
+    if (!s) return fallback;
+    if (/^#[0-9a-fA-F]{6}$/.test(s)) return s;
+    if (/^#[0-9a-fA-F]{3}$/.test(s)) {
+      return "#" + s.slice(1).split("").map(ch => ch + ch).join("");
+    }
+    return fallback;
+  }
+
+  function csvCounterSize(value, fallback) {
+    const s = String(value ?? "").trim().toLowerCase();
+    if (!s) return fallback;
+
+    const aliases = {
+      "1/2": 0.5, "1/2\"": 0.5, "0.5": 0.5,
+      "5/8": 0.625, "5/8\"": 0.625, "0.625": 0.625,
+      "3/4": 0.75, "3/4\"": 0.75, "0.75": 0.75,
+      "1": 1, "1\"": 1, "1.0": 1
+    };
+    if (aliases[s] != null) return aliases[s];
+
+    const n = Number(s);
+    return [0.5,0.625,0.75,1].some(v => Math.abs(n-v) < 0.0001) ? n : fallback;
+  }
+
+  function csvTemplate(value, fallback) {
+    const raw = String(value ?? "").trim();
+    if (!raw) return fallback;
+    const s = raw.toLowerCase().replace(/[\s_-]+/g, "");
+    const map = {
+      "classic":"classic",
+      "sixvalue":"sixValue",
+      "information":"information",
+      "largeship":"largeShip",
+      "largeship(3/4&1inch)":"largeShip"
+    };
+    return map[s] || fallback;
+  }
+
+  function csvSymbol(value, counter) {
+    const raw = String(value ?? "").trim();
+    if (!raw) {
+      counter.symbol = "";
+      counter.customSymbolId = "";
+      return;
+    }
+    if (raw.toLowerCase() === "nato / app-6" || raw.toLowerCase() === "nato" || raw.toLowerCase() === "app-6") {
+      counter.symbol = "nato";
+      counter.customSymbolId = "";
+      return;
+    }
+
+    const legacyOldSchool = {
+      "old school infantry":"SFGPUCI-----",
+      "old school cavalry":"SFGPUCRV----",
+      "old school artillery":"SFGPUCF-----",
+      "old school armor":"SFGPUCA-----"
+    };
+    if (legacyOldSchool[raw.toLowerCase()]) {
+      counter.symbol = "nato";
+      counter.customSymbolId = "";
+      counter.natoSidc = legacyOldSchool[raw.toLowerCase()];
+      return;
+    }
+
+    // Match built-in symbol value or visible dropdown label.
+    const select = $("symbolSelect");
+    if (select) {
+      const option = [...select.options].find(o =>
+        String(o.value).toLowerCase() === raw.toLowerCase() ||
+        String(o.textContent).trim().toLowerCase() === raw.toLowerCase()
+      );
+      if (option) {
+        counter.symbol = option.value;
+        counter.customSymbolId = "";
+        return;
+      }
+    }
+
+    // Match an imported symbol by project name.
+    const custom = (state.customSymbols || []).find(s =>
+      String(s.name || "").trim().toLowerCase() === raw.toLowerCase()
+    );
+    if (custom) {
+      counter.customSymbolId = custom.id;
+      return;
+    }
+  }
+
+  function importCsvValue(row, headers, name) {
+    const idx = headers.indexOf(name);
+    return idx >= 0 ? row[idx] : undefined;
+  }
+
+  function hasCsvColumn(headers, name) {
+    return headers.indexOf(name) >= 0;
+  }
+
+  function applyCsvRowToCounter(c, row, headers) {
+    const get = name => importCsvValue(row, headers, name);
+    const has = name => hasCsvColumn(headers, name);
+
+    if (has("Quantity")) c.quantity = Math.max(1, Math.min(999, Math.floor(Number(get("Quantity")) || c.quantity || 1)));
+    if (has("Template")) c.template = csvTemplate(get("Template"), c.template || "classic");
+
+    if (has("Counter Size (in)")) {
+      c.size = csvCounterSize(get("Counter Size (in)"), Number(c.size) || 0.625);
+      // Physical geometry must remain the same on both faces.
+      if (c.back) c.back.size = c.size;
+    }
+
+    if (c.template === "largeShip" && Number(c.size) < 0.75) {
+      c.size = 0.75;
+      if (c.back) c.back.size = c.size;
+    }
+
+    if (has("Background Color")) c.bg = csvColor(get("Background Color"), c.bg || "#ffffff");
+    if (has("Stripe Orientation")) {
+      const v = String(get("Stripe Orientation") ?? "").trim();
+      if (["none","vertical","horizontal"].includes(v)) c.stripeOrientation = v;
+    }
+    if (has("Stripe Color")) c.stripeColor = csvColor(get("Stripe Color"), c.stripeColor || "#ffffff");
+    if (has("Border Color")) c.border = csvColor(get("Border Color"), c.border || "#111111");
+    if (has("Main Text Color")) c.text = csvColor(get("Main Text Color"), c.text || "#111111");
+    if (has("Symbol Color")) c.symbolColor = csvColor(get("Symbol Color"), c.symbolColor || "#000000");
+
+    if (has("NATO SIDC")) c.natoSidc = String(get("NATO SIDC") ?? "").trim() || c.natoSidc || "SFGPUCI-----";
+    if (has("NATO Frame")) c.natoFrame = csvBool(get("NATO Frame"), !!c.natoFrame);
+    if (has("Damage Explosion")) c.damageExplosion = csvBool(get("Damage Explosion"), !!c.damageExplosion);
+    if (has("Damage Explosion Color")) c.damageExplosionColor = csvColor(get("Damage Explosion Color"), c.damageExplosionColor || "#ff8a00");
+    if (has("Label Font Size (%)")) c.labelTextScale = Math.max(50, Math.min(200, Number(get("Label Font Size (%)")) || c.labelTextScale || 100));
+    if (has("Number Font Size (%)")) c.numberTextScale = Math.max(50, Math.min(200, Number(get("Number Font Size (%)")) || c.numberTextScale || 100));
+
+    if (has("Unit Name")) c.name = String(get("Unit Name") ?? "");
+    if (has("Unit Type")) c.type = String(get("Unit Type") ?? "");
+    if (has("Information Text")) c.infoText = String(get("Information Text") ?? "");
+    if (has("Symbol")) csvSymbol(get("Symbol"), c);
+
+    const standardFields = [
+      ["Top Left","topLeft"],
+      ["Top Right","topRight"],
+      ["Bottom Left","attack"],
+      ["Bottom Center","defense"],
+      ["Bottom Right","move"]
+    ];
+    for (const [header,key] of standardFields) {
+      if (has(header)) c[key] = String(get(header) ?? "");
+      if (has(header + " Text Color")) c[key + "Color"] = csvColor(get(header + " Text Color"), c[key + "Color"] || "#111111");
+      if (has(header + " Highlight")) c[key + "Highlight"] = csvBool(get(header + " Highlight"), !!c[key + "Highlight"]);
+      if (has(header + " Highlight Color")) c[key + "HighlightColor"] = csvColor(get(header + " Highlight Color"), c[key + "HighlightColor"] || "#fff59d");
+    }
+
+    if (has("Ship Country")) c.shipCountry = String(get("Ship Country") ?? "").toUpperCase().slice(0,2);
+    if (has("Ship Letter")) c.shipLetter = String(get("Ship Letter") ?? "").toUpperCase().slice(0,1);
+    if (has("Ship Type")) c.shipType = String(get("Ship Type") ?? "").toUpperCase().slice(0,2);
+
+    const shipFields = [
+      ["Ship Top Left 1","shipTopLeft1"],
+      ["Ship Top Left 2","shipTopLeft2"],
+      ["Ship Top Right 1","shipTopRight1"],
+      ["Ship Top Right 2","shipTopRight2"],
+      ["Ship Bottom Left 1","shipBottomLeft1"],
+      ["Ship Bottom Left 2","shipBottomLeft2"],
+      ["Ship Bottom Right 1","shipBottomRight1"],
+      ["Ship Bottom Right 2","shipBottomRight2"]
+    ];
+    for (const [header,key] of shipFields) {
+      if (has(header)) c[key] = String(get(header) ?? "");
+      if (has(header + " Color")) c[key + "Color"] = csvColor(get(header + " Color"), c[key + "Color"] || "#111111");
+      if (has(header + " Highlight")) c[key + "Highlight"] = csvBool(get(header + " Highlight"), !!c[key + "Highlight"]);
+      if (has(header + " Highlight Color")) c[key + "HighlightColor"] = csvColor(get(header + " Highlight Color"), c[key + "HighlightColor"] || "#fff59d");
+    }
+
+    // Ensure the back retains matching physical geometry after bulk edits.
+    if (c.back) {
+      c.back.size = c.size;
+      c.back.bleed = c.bleed;
+      c.back.safeInset = c.safeInset;
+    }
+  }
+
+  $("importCsvInput").addEventListener("change", async e => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const rows = parseCsv(await file.text());
+      if (rows.length < 2) throw new Error("The CSV does not contain any counter rows.");
+
+      const headers = rows[0].map(h => String(h).trim());
+      if (!headers.includes("Counter Number")) {
+        throw new Error('The CSV must contain a "Counter Number" column. Export a CSV from this tool first, then edit and re-import it.');
+      }
+
+      const counterNumberIndex = headers.indexOf("Counter Number");
+      let updated = 0;
+      let skipped = 0;
+      const warnings = [];
+
+      for (let i=1; i<rows.length; i++) {
+        const row = rows[i];
+        const counterNumber = Math.floor(Number(row[counterNumberIndex]));
+        if (!Number.isFinite(counterNumber) || counterNumber < 1 || counterNumber > state.counters.length) {
+          skipped++;
+          warnings.push(`Row ${i+1}: invalid Counter Number "${row[counterNumberIndex] ?? ""}"`);
+          continue;
+        }
+
+        const c = state.counters[counterNumber - 1];
+        applyCsvRowToCounter(c, row, headers);
+        updated++;
+      }
+
+      state.editingSide = "front";
+      syncControlsFromCounter();
+      renderAll();
+
+      let message = `CSV import complete.\n\nUpdated: ${updated} counter${updated === 1 ? "" : "s"}`;
+      if (skipped) message += `\nSkipped: ${skipped} row${skipped === 1 ? "" : "s"}`;
+      if (warnings.length) message += `\n\n${warnings.slice(0,8).join("\n")}${warnings.length > 8 ? `\n…and ${warnings.length-8} more.` : ""}`;
+      alert(message);
+    } catch (err) {
+      alert("Could not import CSV: " + err.message);
+    }
+
+    e.target.value = "";
+  });
+
   $("loadProjectInput").addEventListener("change", async e => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -1108,12 +1995,15 @@
       if (!Array.isArray(data.counters) || !data.counters.length) throw new Error("No counters found.");
       state = data;
       state.customSymbols ||= [];
+      await ensureCustomSymbolMasks();
       state.sheet ||= { paper: "letter", orientation: "portrait", margin: .375, gutter: .0625, cropMarks: true, guides: true, superiorBackMode: "blank" };
+      state.sheet.superiorPodSize = ["0.625","0.75","1"].includes(String(state.sheet.superiorPodSize)) ? String(state.sheet.superiorPodSize) : "0.625";
       state.sheet.superiorBackMode ||= "blank";
       state.sheet.superiorLayoutMode ||= "auto";
       state.sheet.superiorManualPages ||= [];
       state.sheet.superiorManualPageIndex = Math.max(0, Number(state.sheet.superiorManualPageIndex) || 0);
       state.sheet.superiorSelectedSlotIndex = Math.max(0, Number(state.sheet.superiorSelectedSlotIndex) || 0);
+      state.sheet.superiorManualLayouts ||= {};
       state.counters.forEach(c => {
         if (c.customSymbolId == null) c.customSymbolId = "";
         c.quantity = Math.max(1, Math.min(999, Math.floor(Number(c.quantity) || 1)));
@@ -1122,9 +2012,32 @@
         if (!["none","vertical","horizontal"].includes(c.stripeOrientation)) c.stripeOrientation = "none";
         if (!["start","center","end"].includes(c.stripePosition)) c.stripePosition = "center";
         c.stripeColor ||= "#ffffff";
+        c.damageExplosion = !!c.damageExplosion;
+        c.damageExplosionColor ||= "#ff8a00";
         c.twoSided = !!c.twoSided;
         if (c.twoSided) c.back = normalizeSideData(c.back, c);
         else c.back = null;
+        const legacyOldSchoolMap = {
+          oldSchoolInfantry: {symbol:"nato", natoSidc:"SFGPUCI-----"},
+          oldSchoolCavalry: {symbol:"nato", natoSidc:"SFGPUCRV----"},
+          oldSchoolArtillery: {symbol:"nato", natoSidc:"SFGPUCF-----"},
+          oldSchoolArmor: {symbol:"nato", natoSidc:"SFGPUCA-----"},
+          oldSchoolJetFighter: {symbol:"fighter"},
+          oldSchoolSupportPlane: {symbol:"fighter"},
+          oldSchoolHeavyBomber: {symbol:"bomber"}
+        };
+
+        if (legacyOldSchoolMap[c.symbol]) {
+          const migrated = legacyOldSchoolMap[c.symbol];
+          c.symbol = migrated.symbol;
+          if (migrated.natoSidc) c.natoSidc = migrated.natoSidc;
+        }
+        if (c.back && legacyOldSchoolMap[c.back.symbol]) {
+          const migrated = legacyOldSchoolMap[c.back.symbol];
+          c.back.symbol = migrated.symbol;
+          if (migrated.natoSidc) c.back.natoSidc = migrated.natoSidc;
+        }
+
         if (!c.template) c.template = "classic";
         if (c.infoText == null) c.infoText = "";
         if (c.topLeft == null) c.topLeft = "";
@@ -1151,7 +2064,36 @@
         c.moveHighlightColor ||= "#fff59d";
 
         c.symbolColor ||= "#000000";
-        if (c.back) c.back.symbolColor ||= c.symbolColor;
+        c.natoSidc ||= "SFGPUCI-----";
+        c.natoFrame = !!c.natoFrame;
+        if (c.back) {
+          c.back.symbolColor ||= c.symbolColor;
+          c.back.natoSidc ||= c.natoSidc;
+          c.back.natoFrame = !!c.back.natoFrame;
+        }
+
+        for (const key of ["shipTopLeft1","shipTopLeft2","shipTopRight1","shipTopRight2","shipBottomLeft1","shipBottomLeft2","shipBottomRight1","shipBottomRight2"]) {
+          c[key] ||= "";
+          c[key + "Color"] ||= "#111111";
+          if (c[key + "Highlight"] == null) c[key + "Highlight"] = false;
+          c[key + "HighlightColor"] ||= "#fff59d";
+          if (c.back) {
+            c.back[key] ||= "";
+            c.back[key + "Color"] ||= "#111111";
+            if (c.back[key + "Highlight"] == null) c.back[key + "Highlight"] = false;
+            c.back[key + "HighlightColor"] ||= "#fff59d";
+          }
+        }
+        c.shipCountry ||= "";
+        c.shipLetter ||= "";
+        c.shipType ||= "";
+        if (c.back) {
+          c.back.shipCountry ||= "";
+          c.back.shipLetter ||= "";
+          c.back.shipType ||= "";
+        }
+        if (c.template === "largeShip" && Number(c.size) < 0.75) c.size = 0.75;
+        if (c.back && c.back.template === "largeShip" && Number(c.back.size) < 0.75) c.back.size = 0.75;
       });
       state.selectedId = state.selectedId && state.counters.some(c => c.id === state.selectedId)
         ? state.selectedId
@@ -1181,6 +2123,7 @@
     }
     try {
       const dataUrl = await readFileAsDataURL(file);
+      const maskDataUrl = await buildSymbolMaskDataUrl(dataUrl);
       const id = crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random());
       state.customSymbols ||= [];
       state.customSymbols.push({
@@ -1188,7 +2131,8 @@
         name: file.name.replace(/\.[^.]+$/, ""),
         fileName: file.name,
         mimeType: file.type,
-        dataUrl
+        dataUrl,
+        maskDataUrl
       });
       const c = selectedCounter();
       c.customSymbolId = id;
@@ -1228,50 +2172,128 @@
 
   // Superior POD 5/8-inch chit-sheet export. Geometry is matched to the supplied
   // 18 x 12 inch manufacturer template (1296 x 864 PDF points at 72 pt/inch).
-  const SUPERIOR_POD = {
-    pageWidthPt: 1296,
-    pageHeightPt: 864,
-    counterPt: 45,
-    safeInsetPt: 3.375, // 3/64 inch
-    bleedPt: 3.375,
-    topY: 55,
-    bottomY: 450,
-    rowsPerBlock: 8,
-    frontColumns: [37, 82, 136, 181, 251, 296, 350, 395, 450, 495, 567],
-    backColumns: [1216, 1170, 1117, 1071, 1002, 956, 903, 857, 803, 758, 686]
+  const SUPERIOR_POD_TEMPLATES = {
+    "0.625": {
+      key: "0.625",
+      label: '5/8 inch',
+      pageWidthPt: 1296,
+      pageHeightPt: 864,
+      counterPt: 45,
+      safeInsetPt: 4.5,
+      bleedPt: 3.375,
+      layout: "sideBySide",
+      topY: 55,
+      bottomY: 450,
+      rowsPerBlock: 8,
+      frontColumns: [37, 82, 136, 181, 251, 296, 350, 395, 450, 495, 567],
+      backColumns: [1216, 1170, 1117, 1071, 1002, 956, 903, 857, 803, 758, 686],
+      midlineY: 432,
+      backLabelY: 12
+    },
+    "0.75": {
+      key: "0.75",
+      label: '3/4 inch',
+      pageWidthPt: 864,
+      pageHeightPt: 1296,
+      counterPt: 54,
+      safeInsetPt: 4.5,
+      bleedPt: 9,
+      layout: "topBottom",
+      frontXs: [42, 96, 150, 204, 258, 312, 366, 446, 500, 554, 608, 662, 716, 770],
+      frontYs: [36, 101.5, 167, 232.5, 297, 362, 427.5, 493, 558],
+      backYs: [685, 750.5, 816, 880.5, 945.5, 1011, 1076.5, 1141.5, 1207],
+      midlineY: 648,
+      backLabelY: 660
+    },
+    "1": {
+      key: "1",
+      label: '1 inch',
+      pageWidthPt: 864,
+      pageHeightPt: 1296,
+      counterPt: 72,
+      safeInsetPt: 4.5,
+      bleedPt: 9,
+      layout: "topBottom",
+      frontXs: [27, 99, 189, 261, 369, 441, 531, 603, 693, 765],
+      frontYs: [36, 108, 180, 252, 324, 396, 468, 540],
+      backYs: [684, 756, 828, 900, 972, 1044, 1116, 1188],
+      midlineY: 648,
+      backLabelY: 660
+    }
   };
 
   function superiorFrontSlots() {
+    const tpl = currentPodTemplate();
     const slots = [];
-    for (const y0 of [SUPERIOR_POD.topY, SUPERIOR_POD.bottomY]) {
-      for (let row = 0; row < SUPERIOR_POD.rowsPerBlock; row++) {
-        for (let col = 0; col < SUPERIOR_POD.frontColumns.length; col++) {
-          slots.push({ x: SUPERIOR_POD.frontColumns[col], y: y0 + row * SUPERIOR_POD.counterPt, col, row, y0 });
+
+    if (tpl.key === "0.625") {
+      for (const y0 of [tpl.topY, tpl.bottomY]) {
+        for (let row = 0; row < tpl.rowsPerBlock; row++) {
+          for (let col = 0; col < tpl.frontColumns.length; col++) {
+            slots.push({
+              x: tpl.frontColumns[col],
+              y: y0 + row * tpl.counterPt,
+              col, row, y0,
+              side: "front",
+              slotIndex: slots.length
+            });
+          }
         }
+      }
+      return slots;
+    }
+
+    for (let row = 0; row < tpl.frontYs.length; row++) {
+      for (let col = 0; col < tpl.frontXs.length; col++) {
+        slots.push({
+          x: tpl.frontXs[col],
+          y: tpl.frontYs[row],
+          col, row,
+          y0: 0,
+          side: "front",
+          slotIndex: slots.length
+        });
       }
     }
     return slots;
   }
 
   function superiorBackSlot(frontSlot) {
-    // Manufacturer back sheet is a horizontal mirror of the front sheet.
-    return { ...frontSlot, x: SUPERIOR_POD.backColumns[frontSlot.col] };
-  }
+    const tpl = currentPodTemplate();
 
-  function superiorGroupEdges(slot) {
-    const groups = [[0,1],[2,3],[4,5],[6,7],[8,9],[10,10]];
-    const g = groups.find(([a,b]) => slot.col >= a && slot.col <= b) || [slot.col, slot.col];
+    if (tpl.key === "0.625") {
+      return { ...frontSlot, x: tpl.backColumns[frontSlot.col], side: "back" };
+    }
+
+    // The 3/4 and 1 inch manufacturer templates place backs in the lower
+    // half of the sheet. Front bottom row corresponds to back top row.
+    const backRow = (tpl.backYs.length - 1) - frontSlot.row;
     return {
-      left: slot.col === g[0], right: slot.col === g[1],
-      top: slot.row === 0, bottom: slot.row === SUPERIOR_POD.rowsPerBlock - 1
+      ...frontSlot,
+      x: tpl.frontXs[frontSlot.col],
+      y: tpl.backYs[backRow],
+      y0: tpl.midlineY,
+      physicalRow: backRow,
+      side: "back"
     };
   }
 
-  function hexToRgb(hex) {
-    let h = String(hex || "#000000").replace("#", "");
-    if (h.length === 3) h = h.split("").map(x => x + x).join("");
-    const n = parseInt(h, 16);
-    return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+  function superiorGroupEdges(slot) {
+    const tpl = currentPodTemplate();
+    if (tpl.key === "0.625") {
+      const groups = [[0,1],[2,3],[4,5],[6,7],[8,9],[10,10]];
+      const g = groups.find(([a,b]) => slot.col >= a && slot.col <= b) || [slot.col, slot.col];
+      return {
+        left: slot.col === g[0], right: slot.col === g[1],
+        top: slot.row === 0, bottom: slot.row === tpl.rowsPerBlock - 1
+      };
+    }
+    return {
+      left: slot.col === 0,
+      right: slot.col === (tpl.frontXs.length - 1),
+      top: slot.row === 0,
+      bottom: slot.row === (tpl.frontYs.length - 1)
+    };
   }
 
   function drawRoundedRect(ctx, x, y, w, h, radius, fill) {
@@ -1366,9 +2388,16 @@
     const symbolColor = c.symbolColor || "#000000";
     if (c.customSymbolId) {
       const custom = (state.customSymbols || []).find(s => s.id === c.customSymbolId);
-      if (custom?.dataUrl) return loadTintedSymbolUrl(custom.dataUrl, symbolColor);
+      if (custom?.dataUrl) return loadTintedSymbolUrl(custom.maskDataUrl || custom.dataUrl, symbolColor);
     }
-    if (!c.symbol || !SYMBOLS[c.symbol]) return null;
+    if (!c.symbol) return null;
+    if (c.symbol === "nato") {
+      let svg = renderNatoSvg(c);
+      if (!svg) return null;
+      if (!/^<svg[^>]*xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
+      return loadImageUrl("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
+    }
+    if (!SYMBOLS[c.symbol]) return null;
     let svg = SYMBOLS[c.symbol].replace(/currentColor/g, symbolColor);
     if (!/^<svg[^>]*xmlns=/.test(svg)) svg = svg.replace("<svg", '<svg xmlns="http://www.w3.org/2000/svg"');
     return loadImageUrl("data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg));
@@ -1378,6 +2407,48 @@
     const scale = Math.min(w / img.width, h / img.height);
     const dw = img.width * scale, dh = img.height * scale;
     ctx.drawImage(img, x + (w-dw)/2, y + (h-dh)/2, dw, dh);
+  }
+
+  function drawDamageExplosion(ctx, cx, cy, maxW, maxH, color) {
+    const outer = Math.min(maxW, maxH) * 0.58;
+    const inner = outer * 0.50;
+    const spikes = 12;
+    ctx.save();
+    ctx.translate(cx, cy);
+
+    function burst(radiusA, radiusB, alpha) {
+      ctx.beginPath();
+      for (let i = 0; i < spikes * 2; i++) {
+        const angle = -Math.PI / 2 + (i * Math.PI / spikes);
+        const r = (i % 2 === 0) ? radiusA : radiusB;
+        const px = Math.cos(angle) * r;
+        const py = Math.sin(angle) * r;
+        if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = color || "#ff8a00";
+      ctx.fill();
+    }
+
+    burst(outer, outer * 0.56, 0.58);
+    burst(inner, inner * 0.58, 0.88);
+    ctx.beginPath();
+    ctx.arc(0, 0, outer * 0.18, 0, Math.PI * 2);
+    ctx.globalAlpha = 0.22;
+    ctx.fillStyle = "#ffffff";
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawFitSymbolWithExplosion(ctx, c, img, x, y, w, h) {
+    if (!img) return;
+    const scale = Math.min(w / img.width, h / img.height);
+    const dw = img.width * scale, dh = img.height * scale;
+    const dx = x + (w - dw) / 2;
+    const dy = y + (h - dh) / 2;
+    if (c?.damageExplosion) drawDamageExplosion(ctx, dx + dw / 2, dy + dh / 2, dw * 1.18, dh * 1.18, c.damageExplosionColor || "#ff8a00");
+    ctx.drawImage(img, dx, dy, dw, dh);
   }
 
   function drawValue(ctx, value, cx, cy, fontPx, color, highlighted, highlightColor, scale) {
@@ -1437,8 +2508,9 @@
     for (const arr of byRow.values()) arr.sort((a,b) => a.slot.x - b.slot.x);
     for (const arr of byCol.values()) arr.sort((a,b) => a.slot.y - b.slot.y);
 
-    const bleed = SUPERIOR_POD.bleedPt;
-    const size = SUPERIOR_POD.counterPt;
+    const tpl = currentPodTemplate();
+    const bleed = tpl.bleedPt;
+    const size = tpl.counterPt;
     const result = [];
 
     for (let i=0; i<count; i++) {
@@ -1472,15 +2544,15 @@
         // Adjacent rows within a block, or the bottom row of the upper block
         // directly above the first row of the lower block.
         const sameBlockAdjacent = s.y0 === n.y0 && Math.abs(s.row - n.row) === 1;
-        const bridgeBlocks = n.y0 === SUPERIOR_POD.topY && n.row === SUPERIOR_POD.rowsPerBlock-1 &&
-                             s.y0 === SUPERIOR_POD.bottomY && s.row === 0;
+        const bridgeBlocks = n.y0 === tpl.topY && n.row === tpl.rowsPerBlock-1 &&
+                             s.y0 === tpl.bottomY && s.row === 0;
         if (sameBlockAdjacent || bridgeBlocks) top = ((n.y + size) + s.y) / 2;
       }
       if (colPos >= 0 && colPos < colArr.length-1) {
         const n = colArr[colPos+1].slot;
         const sameBlockAdjacent = s.y0 === n.y0 && Math.abs(s.row - n.row) === 1;
-        const bridgeBlocks = s.y0 === SUPERIOR_POD.topY && s.row === SUPERIOR_POD.rowsPerBlock-1 &&
-                             n.y0 === SUPERIOR_POD.bottomY && n.row === 0;
+        const bridgeBlocks = s.y0 === tpl.topY && s.row === tpl.rowsPerBlock-1 &&
+                             n.y0 === tpl.bottomY && n.row === 0;
         if (sameBlockAdjacent || bridgeBlocks) bottom = ((s.y + size) + n.y) / 2;
       }
 
@@ -1517,75 +2589,77 @@
   async function drawSuperiorCounter(ctx, c, slot, dpi) {
     const scale = dpi / 72;
     const pt = v => v * scale;
-    const x = pt(slot.x), y = pt(slot.y), size = pt(SUPERIOR_POD.counterPt);
+    const x = pt(slot.x), y = pt(slot.y), size = pt(currentPodTemplate().counterPt);
     ctx.fillStyle = c.bg || "#ffffff";
     ctx.fillRect(x, y, size, size);
     drawCounterStripe(ctx, c, x, y, size);
-    // Keep a subtle border only inside the actual finished chit edge.
-    ctx.strokeStyle = c.border || "#111111";
-    ctx.lineWidth = Math.max(0.35*scale, 1);
-    ctx.strokeRect(x, y, size, size);
 
-    const inset = pt(SUPERIOR_POD.safeInsetPt);
-    const sx=x+inset, sy=y+inset, sw=size-2*inset, sh=size-2*inset;
-    const textColor=c.text || "#111111";
-    const labelScale=Math.max(50,Math.min(200,Number(c.labelTextScale)||100))/100;
-    const numberScale=Math.max(50,Math.min(200,Number(c.numberTextScale)||100))/100;
+    // POD output should not draw dark divider lines between adjacent counters.
+    // The bleed fields already define the print separation behavior.
+    const inset = pt(currentPodTemplate().safeInsetPt);
+    const sx = x + inset, sy = y + inset, sw = size - 2 * inset, sh = size - 2 * inset;
+    const textColor = c.text || "#111111";
+    const labelScale = Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)) / 100;
+    const numberScale = Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)) / 100;
     const symbol = await canvasSymbolImage(c);
-    const template=c.template || "classic";
+    const template = c.template || "classic";
 
     if (template === "information") {
-      const hasImage=!!symbol;
-      if (symbol) drawFitImage(ctx, symbol, sx+sw*.12, sy, sw*.76, sh*.43);
-      ctx.fillStyle=textColor;
-      ctx.textAlign="center"; ctx.textBaseline="middle";
-      const fontPx=Math.max(3.2*scale, size*.115*labelScale);
-      ctx.font=`700 ${fontPx}px Arial, sans-serif`;
-      const lines=wrapCanvasText(ctx, c.infoText || c.name || "", sw*.95, hasImage?3:5);
-      const lineH=fontPx*1.05;
-      const areaTop=hasImage ? sy+sh*.52 : sy+sh*.12;
-      const areaH=hasImage ? sh*.43 : sh*.76;
-      let yy=areaTop + areaH/2 - (lines.length-1)*lineH/2;
-      for (const line of lines) { ctx.fillText(line, x+size/2, yy); yy+=lineH; }
+      const hasImage = !!symbol;
+      if (symbol) drawFitSymbolWithExplosion(ctx, c, symbol, sx + sw * .14, sy + sh * .02, sw * .72, sh * .38);
+      ctx.fillStyle = textColor;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      const fontPx = Math.max(3.0 * scale, size * .108 * labelScale);
+      ctx.font = `700 ${fontPx}px Arial, sans-serif`;
+      const lines = wrapCanvasText(ctx, c.infoText || c.name || "", sw * .88, hasImage ? 3 : 5);
+      const lineH = fontPx * 1.04;
+      const areaTop = hasImage ? sy + sh * .54 : sy + sh * .12;
+      const areaH = hasImage ? sh * .34 : sh * .72;
+      let yy = areaTop + areaH / 2 - (lines.length - 1) * lineH / 2;
+      for (const line of lines) {
+        ctx.fillText(line, x + size / 2, yy);
+        yy += lineH;
+      }
       return;
     }
 
     if (template === "sixValue") {
-      drawValue(ctx,c.topLeft,x+size*.18,y+size*.13,size*.105*numberScale,c.topLeftColor,c.topLeftHighlight,c.topLeftHighlightColor,scale);
-      drawValue(ctx,c.topRight,x+size*.82,y+size*.13,size*.105*numberScale,c.topRightColor,c.topRightHighlight,c.topRightHighlightColor,scale);
-      if (symbol) drawFitImage(ctx,symbol,x+size*.20,y+size*.17,size*.60,size*.36);
-      ctx.fillStyle=textColor; ctx.textAlign="center"; ctx.textBaseline="middle";
-      ctx.font=`700 ${size*.09*labelScale}px Arial, sans-serif`;
-      ctx.fillText(String(c.name || "").slice(0,24),x+size/2,y+size*.58);
-      drawValue(ctx,c.attack,x+size*.17,y+size*.84,size*.12*numberScale,c.attackColor,c.attackHighlight,c.attackHighlightColor,scale);
-      drawValue(ctx,c.defense,x+size*.50,y+size*.84,size*.12*numberScale,c.defenseColor,c.defenseHighlight,c.defenseHighlightColor,scale);
-      drawValue(ctx,c.move,x+size*.83,y+size*.84,size*.12*numberScale,c.moveColor,c.moveHighlight,c.moveHighlightColor,scale);
+      drawValue(ctx, c.topLeft, x + size * .21, y + size * .17, size * .097 * numberScale, c.topLeftColor, c.topLeftHighlight, c.topLeftHighlightColor, scale);
+      drawValue(ctx, c.topRight, x + size * .79, y + size * .17, size * .097 * numberScale, c.topRightColor, c.topRightHighlight, c.topRightHighlightColor, scale);
+      if (symbol) drawFitSymbolWithExplosion(ctx, c, symbol, x + size * .24, y + size * .21, size * .52, size * .30);
+      ctx.fillStyle = textColor;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.font = `700 ${size * .082 * labelScale}px Arial, sans-serif`;
+      ctx.fillText(String(c.name || "").slice(0, 24), x + size / 2, y + size * .58);
+      drawValue(ctx, c.attack, x + size * .21, y + size * .80, size * .108 * numberScale, c.attackColor, c.attackHighlight, c.attackHighlightColor, scale);
+      drawValue(ctx, c.defense, x + size * .50, y + size * .80, size * .108 * numberScale, c.defenseColor, c.defenseHighlight, c.defenseHighlightColor, scale);
+      drawValue(ctx, c.move, x + size * .79, y + size * .80, size * .108 * numberScale, c.moveColor, c.moveHighlight, c.moveHighlightColor, scale);
       return;
     }
 
-    ctx.fillStyle=textColor; ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.font=`700 ${size*.105*labelScale}px Arial, sans-serif`;
-    ctx.fillText(String(c.name || "").slice(0,24),x+size/2,y+size*.12);
-    if (symbol) drawFitImage(ctx,symbol,x+size*.17,y+size*.21,size*.66,size*.37);
-    ctx.font=`600 ${size*.072*labelScale}px Arial, sans-serif`;
-    ctx.fillText(String(c.type || "").slice(0,18),x+size/2,y+size*.64);
-    drawValue(ctx,c.attack,x+size*.17,y+size*.84,size*.12*numberScale,c.attackColor,c.attackHighlight,c.attackHighlightColor,scale);
-    drawValue(ctx,c.defense,x+size*.50,y+size*.84,size*.12*numberScale,c.defenseColor,c.defenseHighlight,c.defenseHighlightColor,scale);
-    drawValue(ctx,c.move,x+size*.83,y+size*.84,size*.12*numberScale,c.moveColor,c.moveHighlight,c.moveHighlightColor,scale);
+    ctx.fillStyle = textColor;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = `700 ${size * .095 * labelScale}px Arial, sans-serif`;
+    ctx.fillText(String(c.name || "").slice(0, 24), x + size / 2, y + size * .17);
+    if (symbol) drawFitSymbolWithExplosion(ctx, c, symbol, x + size * .20, y + size * .25, size * .60, size * .31);
+    ctx.font = `600 ${size * .067 * labelScale}px Arial, sans-serif`;
+    ctx.fillText(String(c.type || "").slice(0, 18), x + size / 2, y + size * .61);
+    drawValue(ctx, c.attack, x + size * .21, y + size * .80, size * .108 * numberScale, c.attackColor, c.attackHighlight, c.attackHighlightColor, scale);
+    drawValue(ctx, c.defense, x + size * .50, y + size * .80, size * .108 * numberScale, c.defenseColor, c.defenseHighlight, c.defenseHighlightColor, scale);
+    drawValue(ctx, c.move, x + size * .79, y + size * .80, size * .108 * numberScale, c.moveColor, c.moveHighlight, c.moveHighlightColor, scale);
   }
 
   function drawSuperiorSolidBack(ctx, c, slot, dpi) {
-    const scale = dpi / 72;
-    const pt = v => v * scale;
-    const x = pt(slot.x), y = pt(slot.y), size = pt(SUPERIOR_POD.counterPt);
+    const pt = v => v * (dpi / 72);
+    const x = pt(slot.x), y = pt(slot.y), size = pt(currentPodTemplate().counterPt);
     ctx.fillStyle = c.bg || "#ffffff";
     ctx.fillRect(x, y, size, size);
     drawCounterStripe(ctx, c, x, y, size);
 
-    // Keep the same finished-edge border as the front, but no text or symbol.
-    ctx.strokeStyle = c.border || "#111111";
-    ctx.lineWidth = Math.max(0.35 * scale, 1);
-    ctx.strokeRect(x, y, size, size);
+    // No border stroke here either; POD backs should remain clean.
   }
 
   function binaryConcat(chunks) {
@@ -1765,7 +2839,7 @@
     };
   }
 
-  async function drawGenericCounter(ctx, c, xPx, yPx, sizePx, dpi) {
+  async function drawGenericCounter(ctx, c, xPx, yPx, sizePx, dpi, options={}) {
     const size = sizePx;
     const textColor = c.text || "#111111";
     const labelScale = Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)) / 100;
@@ -1792,6 +2866,7 @@
       const ratio = Math.min(maxW / symbol.width, maxH / symbol.height);
       const w = symbol.width * ratio;
       const h = symbol.height * ratio;
+      if (c.damageExplosion) drawDamageExplosion(ctx, cx, cy, w * 1.18, h * 1.18, c.damageExplosionColor || "#ff8a00");
       ctx.drawImage(symbol, cx - w/2, cy - h/2, w, h);
     }
 
@@ -1865,6 +2940,33 @@
         Math.max(4, size*0.055)
       );
 
+    } else if (template === "largeShip") {
+      drawStat(c.shipTopLeft1,  xPx + size*0.105, yPx + size*0.10, size*0.105*numberScale, c.shipTopLeft1Color, c.shipTopLeft1Highlight, c.shipTopLeft1HighlightColor, size*0.16);
+      drawStat(c.shipTopLeft2,  xPx + size*0.255, yPx + size*0.10, size*0.105*numberScale, c.shipTopLeft2Color, c.shipTopLeft2Highlight, c.shipTopLeft2HighlightColor, size*0.16);
+      drawCenteredText(c.shipCountry || "", xPx + size*0.50, yPx + size*0.10, size*0.09*labelScale, size*0.18, "700", Math.max(4,size*0.045));
+      drawStat(c.shipTopRight1, xPx + size*0.745, yPx + size*0.10, size*0.105*numberScale, c.shipTopRight1Color, c.shipTopRight1Highlight, c.shipTopRight1HighlightColor, size*0.16);
+      drawStat(c.shipTopRight2, xPx + size*0.895, yPx + size*0.10, size*0.105*numberScale, c.shipTopRight2Color, c.shipTopRight2Highlight, c.shipTopRight2HighlightColor, size*0.16);
+
+      if (symbol) drawSymbol(xPx + size*0.5, yPx + size*0.39, size*0.76, size*0.34);
+
+      const shipNamePx = fittedFontPx(c.name || "", size*0.078*labelScale, size*0.72, "700", Math.max(4,size*0.04));
+      ctx.fillStyle = textColor;
+      ctx.font = `700 ${shipNamePx}px Arial, sans-serif`;
+      ctx.textBaseline = "middle";
+      ctx.textAlign = "left";
+      ctx.fillText(String(c.name || ""), xPx + size*0.06, yPx + size*0.64);
+
+      const shipLetterPx = fittedFontPx(c.shipLetter || "", size*0.09*labelScale, size*0.10, "700", Math.max(4,size*0.045));
+      ctx.font = `700 ${shipLetterPx}px Arial, sans-serif`;
+      ctx.textAlign = "right";
+      ctx.fillText(String(c.shipLetter || "").slice(0,1), xPx + size*0.94, yPx + size*0.64);
+
+      drawStat(c.shipBottomLeft1,  xPx + size*0.105, yPx + size*0.88, size*0.105*numberScale, c.shipBottomLeft1Color, c.shipBottomLeft1Highlight, c.shipBottomLeft1HighlightColor, size*0.16);
+      drawStat(c.shipBottomLeft2,  xPx + size*0.255, yPx + size*0.88, size*0.105*numberScale, c.shipBottomLeft2Color, c.shipBottomLeft2Highlight, c.shipBottomLeft2HighlightColor, size*0.16);
+      drawCenteredText(c.shipType || "", xPx + size*0.50, yPx + size*0.88, size*0.09*labelScale, size*0.18, "700", Math.max(4,size*0.045));
+      drawStat(c.shipBottomRight1, xPx + size*0.745, yPx + size*0.88, size*0.105*numberScale, c.shipBottomRight1Color, c.shipBottomRight1Highlight, c.shipBottomRight1HighlightColor, size*0.16);
+      drawStat(c.shipBottomRight2, xPx + size*0.895, yPx + size*0.88, size*0.105*numberScale, c.shipBottomRight2Color, c.shipBottomRight2Highlight, c.shipBottomRight2HighlightColor, size*0.16);
+
     } else if (template === "sixValue") {
       drawStat(c.topLeft,  xPx + size*0.18, yPx + size*0.13, size*0.12*numberScale, c.topLeftColor, c.topLeftHighlight, c.topLeftHighlightColor, size*0.27);
       drawStat(c.topRight, xPx + size*0.82, yPx + size*0.13, size*0.12*numberScale, c.topRightColor, c.topRightHighlight, c.topRightHighlightColor, size*0.27);
@@ -1917,11 +3019,15 @@
     ctx.restore();
 
     // Border is drawn after restoring the clip so it remains crisp and fully visible.
-    ctx.save();
-    ctx.strokeStyle = c.border || "#111111";
-    ctx.lineWidth = Math.max(1, size * 0.012);
-    ctx.strokeRect(xPx, yPx, size, size);
-    ctx.restore();
+    // POD templates suppress it because the manufacturer cut geometry must not
+    // contain printed divider lines.
+    if (!options.suppressBorder) {
+      ctx.save();
+      ctx.strokeStyle = c.border || "#111111";
+      ctx.lineWidth = Math.max(1, size * 0.012);
+      ctx.strokeRect(xPx, yPx, size, size);
+      ctx.restore();
+    }
   }
 
 
@@ -2009,6 +3115,7 @@
   }
 
   async function exportSuperiorPodPdf() {
+    const tpl = currentPodTemplate();
     const manualMode = (state.sheet.superiorLayoutMode || "auto") === "manual";
     let exportPages = [];
 
@@ -2029,12 +3136,18 @@
       }
       exportPages = manualPodPlacements();
       if (!exportPages.length) {
-        alert("The manual Superior POD layout has no assigned counters.");
+        alert(`The manual ${tpl.label} Superior POD layout has no assigned counters.`);
         return;
       }
     } else {
-      const counters = expandedSheetCounters();
-      if (!counters.length) { alert("There are no counters to export."); return; }
+      const counters = [];
+      for (const c of podEligibleCounters()) {
+        for (let i=0; i<counterQuantity(c); i++) counters.push(c);
+      }
+      if (!counters.length) {
+        alert(`There are no ${tpl.label} counters to export.`);
+        return;
+      }
       const slots = superiorFrontSlots();
       const perSheet = slots.length;
       const pageCount = Math.ceil(counters.length / perSheet);
@@ -2045,78 +3158,108 @@
     }
 
     const usedCounters = exportPages.flatMap(p => p.counters);
-    if (usedCounters.some(c => Math.abs(Number(c.size)-0.625) > 0.0001)) {
-      alert('Superior POD export requires every assigned counter to use the 5/8 inch size.');
+    if (usedCounters.some(c => Math.abs(Number(c.size)-Number(tpl.key)) > 0.0001)) {
+      alert(`Superior POD ${tpl.label} export can only contain ${tpl.label} counters.`);
       return;
     }
 
-    const dpi=300, scale=dpi/72;
-    const width=Math.round(SUPERIOR_POD.pageWidthPt*scale);
-    const height=Math.round(SUPERIOR_POD.pageHeightPt*scale);
-    const jpegs=[];
-    const btn=$("superiorPodBtn");
-    const old=btn.textContent;
-    btn.disabled=true;
+    const dpi = 300, scale = dpi / 72;
+    const width = Math.round(tpl.pageWidthPt * scale);
+    const height = Math.round(tpl.pageHeightPt * scale);
+    const jpegs = [];
+    const btn = $("superiorPodBtn");
+    const old = btn.textContent;
+    btn.disabled = true;
 
     try {
       for (let page=0; page<exportPages.length; page++) {
-        btn.textContent=`Building POD ${page+1}/${exportPages.length}...`;
+        btn.textContent = `Building POD ${tpl.label} ${page+1}/${exportPages.length}...`;
 
-        const canvas=document.createElement("canvas");
-        canvas.width=width; canvas.height=height;
-        const ctx=canvas.getContext("2d",{alpha:false});
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d",{alpha:false});
 
-        const subset=exportPages[page].counters;
-        const frontSlots=exportPages[page].slots;
-        const repeatedBacks=(state.sheet.superiorBackMode || "blank") === "repeat";
-        const backSubset=subset.map(c => repeatedBacks ? c : (c.twoSided && c.back ? sideForExport(c,"back") : c));
-        const backSlots=frontSlots.map(superiorBackSlot);
+        const subset = exportPages[page].counters;
+        const frontSlots = exportPages[page].slots;
+        const repeatedBacks = (state.sheet.superiorBackMode || "blank") === "repeat";
+        const backSubset = subset.map(c => repeatedBacks ? c : (c.twoSided && c.back ? sideForExport(c,"back") : c));
+        const backSlots = frontSlots.map(superiorBackSlot);
 
-        const sameColor=superiorAllSameColor(subset);
-        const backSameColor=superiorAllSameColor(backSubset);
-        const wholeSheetColor =
-          sameColor && backSameColor && sameColor.toLowerCase() === backSameColor.toLowerCase()
-            ? sameColor : null;
+        // The legacy 5/8 sheet supports the original whole-sheet same-color fill.
+        // The portrait 3/4 and 1 inch templates retain their central separation.
+        let wholeSheetColor = null;
+        if (tpl.key === "0.625") {
+          const sameColor = superiorAllSameColor(subset);
+          const backSameColor = superiorAllSameColor(backSubset);
+          wholeSheetColor =
+            sameColor && backSameColor && sameColor.toLowerCase() === backSameColor.toLowerCase()
+              ? sameColor : null;
+        }
 
-        ctx.fillStyle=wholeSheetColor || "#ffffff";
+        ctx.fillStyle = wholeSheetColor || "#ffffff";
         ctx.fillRect(0,0,width,height);
 
         if (!wholeSheetColor) {
-          drawSuperiorBleedBackground(ctx,subset,frontSlots,dpi);
-          drawSuperiorBleedBackground(ctx,backSubset,backSlots,dpi);
+          drawSuperiorBleedBackground(ctx, subset, frontSlots, dpi);
+          drawSuperiorBleedBackground(ctx, backSubset, backSlots, dpi);
         }
 
-        for (let i=0;i<subset.length;i++) {
-          await drawSuperiorCounter(ctx,subset[i],frontSlots[i],dpi);
-        }
-
-        for (let i=0;i<subset.length;i++) {
-          const c=subset[i];
-          if (repeatedBacks) {
-            await drawSuperiorCounter(ctx,c,backSlots[i],dpi);
-          } else if (c.twoSided && c.back) {
-            await drawSuperiorCounter(ctx,sideForExport(c,"back"),backSlots[i],dpi);
+        for (let i=0; i<subset.length; i++) {
+          const slot = frontSlots[i];
+          if (tpl.key === "0.625") {
+            await drawSuperiorCounter(ctx, subset[i], slot, dpi);
           } else {
-            drawSuperiorSolidBack(ctx,c,backSlots[i],dpi);
+            await drawGenericCounter(
+              ctx,
+              subset[i],
+              slot.x * scale,
+              slot.y * scale,
+              tpl.counterPt * scale,
+              dpi,
+              {suppressBorder:true}
+            );
+          }
+        }
+
+        for (let i=0; i<subset.length; i++) {
+          const c = subset[i];
+          const slot = backSlots[i];
+          if (repeatedBacks) {
+            if (tpl.key === "0.625") {
+              await drawSuperiorCounter(ctx, c, slot, dpi);
+            } else {
+              await drawGenericCounter(ctx, c, slot.x*scale, slot.y*scale, tpl.counterPt*scale, dpi, {suppressBorder:true});
+            }
+          } else if (c.twoSided && c.back) {
+            const backCounter = sideForExport(c,"back");
+            if (tpl.key === "0.625") {
+              await drawSuperiorCounter(ctx, backCounter, slot, dpi);
+            } else {
+              await drawGenericCounter(ctx, backCounter, slot.x*scale, slot.y*scale, tpl.counterPt*scale, dpi, {suppressBorder:true});
+            }
+          } else {
+            drawSuperiorSolidBack(ctx, c, slot, dpi);
           }
         }
 
         jpegs.push(await canvasToJpegBytes(canvas));
       }
 
-      const pdf=buildJpegPdf(jpegs,width,height,SUPERIOR_POD.pageWidthPt,SUPERIOR_POD.pageHeightPt);
-      const blob=new Blob([pdf],{type:"application/pdf"});
-      const a=document.createElement("a");
-      a.href=URL.createObjectURL(blob);
-      a.download="starfall-superior-pod-5-8-chit-sheet.pdf";
+      const pdf = buildJpegPdf(jpegs, width, height, tpl.pageWidthPt, tpl.pageHeightPt);
+      const blob = new Blob([pdf],{type:"application/pdf"});
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      const namePart = tpl.key === "0.625" ? "5-8" : (tpl.key === "0.75" ? "3-4" : "1-inch");
+      a.download = `starfall-superior-pod-${namePart}-counter-sheet.pdf`;
       a.click();
       setTimeout(()=>URL.revokeObjectURL(a.href),1500);
     } catch (err) {
       console.error(err);
       alert("Could not create the Superior POD PDF: " + err.message);
     } finally {
-      btn.disabled=false;
-      btn.textContent=old;
+      btn.disabled = false;
+      btn.textContent = old;
     }
   }
 

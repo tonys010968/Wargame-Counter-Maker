@@ -3,25 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Wargame Counter Creator v0.35</title>
+  <title>Wargame Counter Creator 1.0</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="app-header">
     <div>
       <h1>Wargame Counter Creator</h1>
-      <div class="brand-line"><span class="starfall-mark" aria-hidden="true">✦</span><span>Starfall Works</span><span class="brand-sep">•</span><span>v0.35</span></div>
+      <div class="brand-line"><span class="starfall-mark" aria-hidden="true">✦</span><span>Starfall Works</span><span class="brand-sep">•</span><span>1.0</span></div>
     </div>
     <div class="header-actions">
       <button id="newProjectBtn">New</button>
       <button id="saveProjectBtn">Save Project</button>
       <button id="exportCsvBtn">Export CSV</button>
       <label class="file-button">
+        Import CSV
+        <input id="importCsvInput" type="file" accept=".csv,text/csv">
+      </label>
+      <label class="file-button">
         Load Project
         <input id="loadProjectInput" type="file" accept=".json,application/json">
       </label>
       <button id="generalPdfBtn" type="button">General Double-Sided PDF</button>
-          <button id="superiorPodBtn" title="Export the 18 × 12 inch Superior POD 5/8 inch chit sheet format">Superior POD PDF</button>
+          <button id="superiorPodBtn" title="Export Superior POD counter sheets for 5/8, 3/4, or 1 inch counters">Superior POD PDF</button>
       <button id="printBtn" class="primary">Print / PDF</button>
     </div>
   </header>
@@ -83,6 +87,7 @@
             <select id="templateSelect">
               <option value="classic" selected>Classic</option>
               <option value="sixValue">Six-Value</option>
+              <option value="largeShip">Large Ship (3/4 & 1 inch)</option>
               <option value="information">Information</option>
             </select>
           </label>
@@ -136,6 +141,12 @@
             <input id="symbolColor" type="color" value="#000000">
           </label>
 
+          <label class="check"><input id="damageExplosion" type="checkbox"> Damage explosion</label>
+
+          <label>Explosion color
+            <input id="damageExplosionColor" type="color" value="#ff8a00">
+          </label>
+
           <label>Label font size (%)
             <input id="labelTextScale" type="number" min="50" max="200" step="5" value="100">
           </label>
@@ -148,7 +159,7 @@
             <input id="unitName" type="text" maxlength="30" value="1/506 PIR">
           </label>
 
-          <label class="non-info-only">Unit type
+          <label class="non-info-only non-large-ship">Unit type
             <input id="unitType" type="text" maxlength="20" value="INF">
           </label>
 
@@ -156,30 +167,62 @@
             <textarea id="infoText" rows="4" maxlength="120" placeholder="Turn 3&#10;Victory Point&#10;Weather: Rain"></textarea>
           </label>
 
-          <label>Silhouette
+          <label>Silhouette / Symbol
             <select id="symbolSelect">
               <option value="">None</option>
-              <option value="infantry">Infantry</option>
-              <option value="oldSchoolInfantry">Old School Infantry</option>
-              <option value="oldSchoolCavalry">Old School Cavalry</option>
-              <option value="oldSchoolArtillery">Old School Artillery</option>
-              <option value="oldSchoolArmor">Old School Armor</option>
-              <option value="oldSchoolJetFighter">Old School Jet Fighter</option>
-              <option value="oldSchoolSupportPlane">Old School Support Plane</option>
-              <option value="oldSchoolHeavyBomber">Old School Heavy Bomber</option>
-              <option value="tank">Tank</option>
-              <option value="artillery">Artillery</option>
-              <option value="truck">Truck</option>
-              <option value="fighter">Fighter</option>
-              <option value="bomber">Bomber</option>
-              <option value="destroyer">Destroyer</option>
-              <option value="cruiser">Cruiser</option>
-              <option value="battleship">Battleship</option>
-              <option value="carrier">Carrier</option>
-              <option value="submarine">Submarine</option>
-              <option value="helicopter">Helicopter</option>
+              <optgroup label="Traditional silhouettes">
+                <option value="infantry">Infantry</option>
+                <option value="tank">Tank</option>
+                <option value="artillery">Artillery</option>
+                <option value="truck">Truck</option>
+                <option value="fighter">Fighter</option>
+                <option value="bomber">Bomber</option>
+                <option value="destroyer">Destroyer</option>
+                <option value="cruiser">Cruiser</option>
+                <option value="battleship">Battleship</option>
+                <option value="carrier">Carrier</option>
+                <option value="submarine">Submarine</option>
+                <option value="helicopter">Helicopter</option>
+              </optgroup>
+              <optgroup label="NATO / APP-6">
+                <option value="nato">NATO / APP-6 Symbol…</option>
+              </optgroup>
             </select>
           </label>
+
+          <div class="nato-only nato-controls">
+            <div class="nato-controls-heading">NATO / APP-6 Symbol</div>
+
+            <label>Search
+              <input id="natoSearch" type="text" placeholder="infantry, armor, artillery..." autocomplete="off">
+            </label>
+
+            <label>Category
+              <select id="natoCategory">
+                <option value="all">All categories</option>
+                <option value="combat">Combat</option>
+                <option value="combat-support">Combat Support</option>
+                <option value="service-support">Combat Service Support</option>
+                <option value="command">Command & Control</option>
+                <option value="aviation">Aviation</option>
+              </select>
+            </label>
+
+            <label>Matches
+              <select id="natoResultSelect" size="6"></select>
+            </label>
+
+            <label>SIDC
+              <input id="natoSidc" type="text" maxlength="40" value="SFGPUCI-----" spellcheck="false">
+            </label>
+
+            <label class="check">
+              <input id="natoFrame" type="checkbox">
+              Show NATO frame
+            </label>
+
+            <div id="natoStatus" class="nato-status">APP-6 renderer ready when online.</div>
+          </div>
 
           <label>Imported symbol
             <select id="customSymbolSelect">
@@ -194,22 +237,62 @@
 
           <button id="removeSymbolBtn" type="button">Remove Imported Symbol</button>
 
-          <label class="six-only non-info-only">Top left
+          <label class="six-only non-info-only non-large-ship">Top left
             <input id="topLeftValue" type="text" maxlength="4" value="">
           </label>
-          <label class="six-only non-info-only">Top right
+          <label class="six-only non-info-only non-large-ship">Top right
             <input id="topRightValue" type="text" maxlength="4" value="">
           </label>
 
-          <label class="non-info-only">Attack / Bottom left
+          <label class="non-info-only non-large-ship">Attack / Bottom left
             <input id="attackValue" type="text" maxlength="4" value="5">
           </label>
-          <label class="non-info-only">Defense / Bottom center
+          <label class="non-info-only non-large-ship">Defense / Bottom center
             <input id="defenseValue" type="text" maxlength="4" value="4">
           </label>
-          <label class="non-info-only">Movement / Bottom right
+          <label class="non-info-only non-large-ship">Movement / Bottom right
             <input id="moveValue" type="text" maxlength="4" value="6">
           </label>
+
+          <div class="large-ship-only large-ship-fields">
+            <div class="large-ship-field-heading">Large Ship Layout Fields</div>
+
+            <label>Top left 1
+              <input id="shipTopLeft1Value" type="text" maxlength="4" value="">
+            </label>
+            <label>Top left 2
+              <input id="shipTopLeft2Value" type="text" maxlength="4" value="">
+            </label>
+            <label>Country (2 letters)
+              <input id="shipCountry" type="text" maxlength="2" value="">
+            </label>
+            <label>Top right 1
+              <input id="shipTopRight1Value" type="text" maxlength="4" value="">
+            </label>
+            <label>Top right 2
+              <input id="shipTopRight2Value" type="text" maxlength="4" value="">
+            </label>
+
+            <label>Right-side letter
+              <input id="shipLetter" type="text" maxlength="1" value="">
+            </label>
+
+            <label>Bottom left 1
+              <input id="shipBottomLeft1Value" type="text" maxlength="4" value="">
+            </label>
+            <label>Bottom left 2
+              <input id="shipBottomLeft2Value" type="text" maxlength="4" value="">
+            </label>
+            <label>Ship type (2 letters)
+              <input id="shipType" type="text" maxlength="2" value="">
+            </label>
+            <label>Bottom right 1
+              <input id="shipBottomRight1Value" type="text" maxlength="4" value="">
+            </label>
+            <label>Bottom right 2
+              <input id="shipBottomRight2Value" type="text" maxlength="4" value="">
+            </label>
+          </div>
 
           <label>Bleed
             <select id="bleedSelect">
@@ -232,7 +315,7 @@
         <div class="number-style-section non-info-only">
           <h3>Number Styling</h3>
           <div class="number-style-grid">
-            <div class="number-style-card six-only">
+            <div class="number-style-card six-only non-large-ship">
               <div class="number-style-title">Top Left</div>
               <label>Text color
                 <input id="topLeftColor" type="color" value="#111111">
@@ -243,7 +326,7 @@
               </label>
             </div>
 
-            <div class="number-style-card six-only">
+            <div class="number-style-card six-only non-large-ship">
               <div class="number-style-title">Top Right</div>
               <label>Text color
                 <input id="topRightColor" type="color" value="#111111">
@@ -254,7 +337,7 @@
               </label>
             </div>
 
-            <div class="number-style-card">
+            <div class="number-style-card non-large-ship">
               <div class="number-style-title">Bottom Left</div>
               <label>Text color
                 <input id="attackColor" type="color" value="#111111">
@@ -265,7 +348,7 @@
               </label>
             </div>
 
-            <div class="number-style-card">
+            <div class="number-style-card non-large-ship">
               <div class="number-style-title">Bottom Center</div>
               <label>Text color
                 <input id="defenseColor" type="color" value="#111111">
@@ -276,7 +359,7 @@
               </label>
             </div>
 
-            <div class="number-style-card">
+            <div class="number-style-card non-large-ship">
               <div class="number-style-title">Bottom Right</div>
               <label>Text color
                 <input id="moveColor" type="color" value="#111111">
@@ -285,6 +368,55 @@
               <label>Highlight color
                 <input id="moveHighlightColor" type="color" value="#fff59d">
               </label>
+            </div>
+
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Top Left 1</div>
+              <label>Text color<input id="shipTopLeft1Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipTopLeft1Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipTopLeft1HighlightColor" type="color" value="#fff59d"></label>
+            </div>
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Top Left 2</div>
+              <label>Text color<input id="shipTopLeft2Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipTopLeft2Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipTopLeft2HighlightColor" type="color" value="#fff59d"></label>
+            </div>
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Top Right 1</div>
+              <label>Text color<input id="shipTopRight1Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipTopRight1Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipTopRight1HighlightColor" type="color" value="#fff59d"></label>
+            </div>
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Top Right 2</div>
+              <label>Text color<input id="shipTopRight2Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipTopRight2Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipTopRight2HighlightColor" type="color" value="#fff59d"></label>
+            </div>
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Bottom Left 1</div>
+              <label>Text color<input id="shipBottomLeft1Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipBottomLeft1Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipBottomLeft1HighlightColor" type="color" value="#fff59d"></label>
+            </div>
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Bottom Left 2</div>
+              <label>Text color<input id="shipBottomLeft2Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipBottomLeft2Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipBottomLeft2HighlightColor" type="color" value="#fff59d"></label>
+            </div>
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Bottom Right 1</div>
+              <label>Text color<input id="shipBottomRight1Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipBottomRight1Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipBottomRight1HighlightColor" type="color" value="#fff59d"></label>
+            </div>
+            <div class="number-style-card large-ship-only">
+              <div class="number-style-title">Ship Bottom Right 2</div>
+              <label>Text color<input id="shipBottomRight2Color" type="color" value="#111111"></label>
+              <label class="check"><input id="shipBottomRight2Highlight" type="checkbox"> Highlight</label>
+              <label>Highlight color<input id="shipBottomRight2HighlightColor" type="color" value="#fff59d"></label>
             </div>
           </div>
         </div>
@@ -324,10 +456,18 @@
           </label>
           <label class="check"><input id="cropMarksCheck" type="checkbox" checked> Crop marks</label>
           <label class="check"><input id="sheetGuidesCheck" type="checkbox" checked> Bleed guides</label>
+          <label>Superior POD counter size
+            <select id="superiorPodSize">
+              <option value="0.625" selected>5/8 inch - 176 fronts</option>
+              <option value="0.75">3/4 inch - 126 fronts</option>
+              <option value="1">1 inch - 80 fronts</option>
+            </select>
+          </label>
+
           <label>Superior POD back
             <select id="superiorBackMode">
               <option value="blank" selected>Automatic backs</option>
-              <option value="repeat">Repeat fronts (mirrored)</option>
+              <option value="repeat">Repeat fronts on backs</option>
             </select>
           </label>
 
@@ -352,7 +492,7 @@
           <div class="pod-planner-header">
             <div>
               <h2>Superior POD Slot Planner</h2>
-              <p>Assign front counters to the manufacturer's exact slots. Back sides are paired and mirrored automatically.</p>
+              <p>Assign counters to the manufacturer's exact front positions. Matching back positions are linked automatically for the selected template.</p>
             </div>
             <div class="pod-page-nav">
               <button id="podPrevPageBtn" type="button">◀</button>
@@ -382,13 +522,13 @@
 
           <div class="pod-exact-sheet-wrap">
             <div id="podExactSheet" class="pod-exact-sheet" aria-label="Exact Superior POD press-sheet layout">
-              <div class="pod-sheet-label pod-front-label">FRONTS</div>
-              <div class="pod-sheet-label pod-back-label">LINKED BACKS</div>
+              <div id="podFrontLabel" class="pod-sheet-label pod-front-label">FRONTS</div>
+              <div id="podBackLabel" class="pod-sheet-label pod-back-label">LINKED BACKS</div>
             </div>
           </div>
 
           <div class="pod-planner-note">
-            This workspace uses the same coordinates as the Superior POD PDF. Front slots are editable. The linked back for each two-sided counter is shown in its exact mirrored position on the right.
+            This workspace uses the same coordinates as the selected Superior POD PDF template. Front slots are editable and each linked back is shown in its exact manufacturer position.
           </div>
         </div>
         <div id="sheetPreview" class="sheet-preview"></div>
@@ -398,6 +538,7 @@
 
   <footer class="app-footer"><span class="starfall-mark" aria-hidden="true">✦</span> Wargame Counter Creator is a Starfall Works product.</footer>
 
+  <script src="https://unpkg.com/milsymbol@3.0.4/dist/milsymbol.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
