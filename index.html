@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>Wargame Counter Creator 1.0</title>
+  <title>Wargame Counter Creator 1.3</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header class="app-header">
     <div>
       <h1>Wargame Counter Creator</h1>
-      <div class="brand-line"><span class="starfall-mark" aria-hidden="true">✦</span><span>Starfall Works</span><span class="brand-sep">•</span><span>1.0</span></div>
+      <div class="brand-line"><span class="starfall-mark" aria-hidden="true">✦</span><span>Starfall Works</span><span class="brand-sep">•</span><span>1.3</span></div>
     </div>
     <div class="header-actions">
       <button id="newProjectBtn">New</button>
@@ -214,6 +214,24 @@
 
             <label>SIDC
               <input id="natoSidc" type="text" maxlength="40" value="SFGPUCI-----" spellcheck="false">
+            </label>
+
+            <label>NATO unit size
+              <select id="natoUnitSize">
+                <option value="">None</option>
+                <option value="team">Team / Crew (•)</option>
+                <option value="squad">Squad / Detachment (••)</option>
+                <option value="section">Section (•••)</option>
+                <option value="platoon">Platoon / Troop (|)</option>
+                <option value="company">Company / Battery / Squadron (||)</option>
+                <option value="battalion">Battalion / Squadron (|||)</option>
+                <option value="regiment">Regiment / Group (|X|)</option>
+                <option value="brigade">Brigade (X)</option>
+                <option value="division">Division (XX)</option>
+                <option value="corps">Corps (XXX)</option>
+                <option value="army">Army (XXXX)</option>
+                <option value="armygroup">Army Group / Front (XXXXX)</option>
+              </select>
             </label>
 
             <label class="check">

@@ -124,6 +124,94 @@
     }
   }
 
+
+  const NATO_UNIT_SIZE_OPTIONS = [
+    { value:"", label:"None", mark:"" },
+    { value:"team", label:"Team / Crew", mark:"•" },
+    { value:"squad", label:"Squad / Detachment", mark:"••" },
+    { value:"section", label:"Section", mark:"•••" },
+    { value:"platoon", label:"Platoon / Troop", mark:"|" },
+    { value:"company", label:"Company / Battery / Squadron", mark:"||" },
+    { value:"battalion", label:"Battalion / Squadron", mark:"|||" },
+    { value:"regiment", label:"Regiment / Group", mark:"|X|" },
+    { value:"brigade", label:"Brigade", mark:"X" },
+    { value:"division", label:"Division", mark:"XX" },
+    { value:"corps", label:"Corps", mark:"XXX" },
+    { value:"army", label:"Army", mark:"XXXX" },
+    { value:"armygroup", label:"Army Group / Front", mark:"XXXXX" }
+  ];
+
+  function natoUnitSizeMark(value) {
+    const match = NATO_UNIT_SIZE_OPTIONS.find(x => x.value === String(value || ""));
+    return match ? match.mark : "";
+  }
+
+  function natoUnitSizeLabel(value) {
+    const match = NATO_UNIT_SIZE_OPTIONS.find(x => x.value === String(value || ""));
+    return match ? match.label : "";
+  }
+
+  function normalizeNatoUnitSize(value, fallback = "") {
+    const raw = String(value ?? "").trim();
+    if (!raw) return fallback;
+    const s = raw.toLowerCase();
+
+    const aliases = {
+      "none":"",
+      "team":"team",
+      "team / crew":"team",
+      "team/crew":"team",
+      "crew":"team",
+      "•":"team",
+      ".":"team",
+      "squad":"squad",
+      "detachment":"squad",
+      "squad / detachment":"squad",
+      "squad/detachment":"squad",
+      "••":"squad",
+      "..":"squad",
+      "section":"section",
+      "•••":"section",
+      "...":"section",
+      "platoon":"platoon",
+      "troop":"platoon",
+      "platoon / troop":"platoon",
+      "platoon/troop":"platoon",
+      "|":"platoon",
+      "company":"company",
+      "battery":"company",
+      "squadron":"company",
+      "company / battery / squadron":"company",
+      "company/battery/squadron":"company",
+      "||":"company",
+      "battalion":"battalion",
+      "battalion / squadron":"battalion",
+      "battalion/squadron":"battalion",
+      "|||":"battalion",
+      "regiment":"regiment",
+      "group":"regiment",
+      "regiment / group":"regiment",
+      "regiment/group":"regiment",
+      "|x|":"regiment",
+      "x":"brigade",
+      "brigade":"brigade",
+      "xx":"division",
+      "division":"division",
+      "xxx":"corps",
+      "corps":"corps",
+      "xxxx":"army",
+      "army":"army",
+      "xxxxx":"armygroup",
+      "armygroup":"armygroup",
+      "army group":"armygroup",
+      "front":"armygroup",
+      "army group / front":"armygroup",
+      "army group/front":"armygroup"
+    };
+
+    return aliases[s] != null ? aliases[s] : fallback;
+  }
+
   const defaultCounter = () => ({
     id: crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
     name: "1/506 PIR",
@@ -193,6 +281,7 @@
     symbol: "infantry",
     customSymbolId: "",
     natoSidc: "SFGPUCI-----",
+    natoUnitSize: "",
     natoFrame: false,
     size: 0.625,
     bleed: 0.0625,
@@ -260,6 +349,7 @@
     natoCategory: $("natoCategory"),
     natoResultSelect: $("natoResultSelect"),
     natoSidc: $("natoSidc"),
+    natoUnitSize: $("natoUnitSize"),
     natoFrame: $("natoFrame"),
 
     shipTopLeft1Value: $("shipTopLeft1Value"),
@@ -341,7 +431,7 @@
       "shipBottomLeft2Color","shipBottomLeft2Highlight","shipBottomLeft2HighlightColor",
       "shipBottomRight1Color","shipBottomRight1Highlight","shipBottomRight1HighlightColor",
       "shipBottomRight2Color","shipBottomRight2Highlight","shipBottomRight2HighlightColor",
-      "symbol","customSymbolId","natoSidc","natoFrame","size","bleed","safeInset","bg","stripeOrientation",
+      "symbol","customSymbolId","natoSidc","natoUnitSize","natoFrame","size","bleed","safeInset","bg","stripeOrientation",
       "stripePosition","stripeColor","border","text","symbolColor","damageExplosion","damageExplosionColor","labelTextScale","numberTextScale"
     ];
     const side = {};
@@ -357,6 +447,7 @@
     out.stripeColor ||= "#ffffff";
     out.symbolColor ||= "#000000";
     out.natoSidc ||= "SFGPUCI-----";
+    out.natoUnitSize = normalizeNatoUnitSize(out.natoUnitSize, "");
     out.natoFrame = !!out.natoFrame;
     out.damageExplosion = !!out.damageExplosion;
     out.damageExplosionColor ||= "#ff8a00";
@@ -434,6 +525,7 @@
     renderCustomSymbolOptions();
     controls.customSymbolSelect.value = c.customSymbolId || "";
     controls.natoSidc.value = c.natoSidc || "SFGPUCI-----";
+    controls.natoUnitSize.value = normalizeNatoUnitSize(c.natoUnitSize, "");
     controls.natoFrame.checked = !!c.natoFrame;
     updateNatoStatus();
     renderNatoSearchResults();
@@ -529,6 +621,7 @@
     document.body.classList.toggle("symbol-nato", c.symbol === "nato");
     c.customSymbolId = controls.customSymbolSelect.value || "";
     c.natoSidc = (controls.natoSidc.value || "SFGPUCI-----").trim();
+    c.natoUnitSize = normalizeNatoUnitSize(controls.natoUnitSize.value, "");
     c.natoFrame = !!controls.natoFrame.checked;
 
     c.shipTopLeft1 = controls.shipTopLeft1Value.value;
@@ -688,6 +781,22 @@
     return `${explosionMarkup(c)}${getSymbolMarkup(c)}`;
   }
 
+  function natoUnitSizeMarkup(c, sizePx, template = "classic") {
+    if (!c || c.symbol !== "nato") return "";
+    const mark = natoUnitSizeMark(c.natoUnitSize || "");
+    if (!mark) return "";
+    const fontPx = Math.max(6, sizePx * (template === "largeShip" ? 0.068 : template === "sixValue" ? 0.078 : 0.082));
+    return `<span class="nato-echelon" style="color:${escapeHtml(c.symbolColor || "#000000")};font-size:${fontPx}px">${escapeHtml(mark)}</span>`;
+  }
+
+  function symbolWrapInnerMarkup(c, sizePx, template = "classic") {
+    if (c?.symbol === "nato" && natoUnitSizeMark(c.natoUnitSize || "")) {
+      const frameClass = c.natoFrame ? " framed" : "";
+      return `${explosionMarkup(c)}<span class="nato-symbol-composite${frameClass}">${natoUnitSizeMarkup(c, sizePx, template)}<span class="nato-symbol-art">${getSymbolMarkup(c)}</span></span>`;
+    }
+    return symbolWithExplosionMarkup(c);
+  }
+
   function readFileAsDataURL(file) {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -821,7 +930,7 @@
       content = `
         <div class="top-stat left" style="font-size:${Math.max(6, sizePx * .11 * numberScale)}px">${numberMarkup(c.topLeft || "", c.topLeftColor, c.topLeftHighlight, c.topLeftHighlightColor)}</div>
         <div class="top-stat right" style="font-size:${Math.max(6, sizePx * .11 * numberScale)}px">${numberMarkup(c.topRight || "", c.topRightColor, c.topRightHighlight, c.topRightHighlightColor)}</div>
-        <div class="symbol-wrap">${symbolWithExplosionMarkup(c)}</div>
+        <div class="symbol-wrap">${symbolWrapInnerMarkup(c, sizePx, "sixValue")}</div>
         <div class="unit-name" style="font-size:${Math.max(6, sizePx * .085 * labelScale)}px">${escapeHtml(c.name || "")}</div>
         <div class="stat attack" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.attack || "", c.attackColor, c.attackHighlight, c.attackHighlightColor)}</div>
         <div class="stat defense" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.defense || "", c.defenseColor, c.defenseHighlight, c.defenseHighlightColor)}</div>
@@ -834,7 +943,7 @@
         <div class="ship-top-stat ship-tr1" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipTopRight1 || "", c.shipTopRight1Color, c.shipTopRight1Highlight, c.shipTopRight1HighlightColor)}</div>
         <div class="ship-top-stat ship-tr2" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipTopRight2 || "", c.shipTopRight2Color, c.shipTopRight2Highlight, c.shipTopRight2HighlightColor)}</div>
 
-        <div class="symbol-wrap ship-symbol">${symbolWithExplosionMarkup(c)}</div>
+        <div class="symbol-wrap ship-symbol">${symbolWrapInnerMarkup(c, sizePx, "largeShip")}</div>
 
         <div class="ship-name" style="font-size:${Math.max(6, sizePx * .078 * labelScale)}px">${escapeHtml(c.name || "")}</div>
         <div class="ship-letter" style="font-size:${Math.max(6, sizePx * .09 * labelScale)}px">${escapeHtml((c.shipLetter || "").slice(0,1))}</div>
@@ -846,7 +955,7 @@
         <div class="ship-bottom-stat ship-br2" style="font-size:${Math.max(6, sizePx * .105 * numberScale)}px">${numberMarkup(c.shipBottomRight2 || "", c.shipBottomRight2Color, c.shipBottomRight2Highlight, c.shipBottomRight2HighlightColor)}</div>`;
     } else if (template === "information") {
       const hasImage = !!(c.customSymbolId || c.symbol);
-      const imageMarkup = hasImage ? `<div class="symbol-wrap">${symbolWithExplosionMarkup(c)}</div>` : "";
+      const imageMarkup = hasImage ? `<div class="symbol-wrap">${symbolWrapInnerMarkup(c, sizePx, "information")}</div>` : "";
       const infoClass = hasImage ? "counter-art info-template" : "counter-art info-template no-image";
       content = `
         ${imageMarkup}
@@ -861,7 +970,7 @@
     } else {
       content = `
         <div class="unit-name" style="font-size:${Math.max(6, sizePx * .11 * labelScale)}px">${escapeHtml(c.name || "")}</div>
-        <div class="symbol-wrap">${symbolWithExplosionMarkup(c)}</div>
+        <div class="symbol-wrap">${symbolWrapInnerMarkup(c, sizePx, "classic")}</div>
         <div class="unit-type" style="font-size:${Math.max(5, sizePx * .075 * labelScale)}px">${escapeHtml(c.type || "")}</div>
         <div class="stat attack" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.attack || "", c.attackColor, c.attackHighlight, c.attackHighlightColor)}</div>
         <div class="stat defense" style="font-size:${Math.max(6, sizePx * .13 * numberScale)}px">${numberMarkup(c.defense || "", c.defenseColor, c.defenseHighlight, c.defenseHighlightColor)}</div>
@@ -1651,7 +1760,7 @@
   $("exportCsvBtn").addEventListener("click", () => {
     const headers = [
       "Counter Number","Quantity","Template","Counter Size (in)","Background Color","Stripe Orientation","Stripe Color","Border Color","Main Text Color","Label Font Size (%)","Number Font Size (%)",
-      "Unit Name","Unit Type","Information Text","Symbol","Symbol Color","NATO SIDC","NATO Frame","Damage Explosion","Damage Explosion Color",
+      "Unit Name","Unit Type","Information Text","Symbol","Symbol Color","NATO SIDC","NATO Unit Size","NATO Frame","Damage Explosion","Damage Explosion Color",
       "Top Left","Top Left Text Color","Top Left Highlight","Top Left Highlight Color",
       "Top Right","Top Right Text Color","Top Right Highlight","Top Right Highlight Color",
       "Bottom Left","Bottom Left Text Color","Bottom Left Highlight","Bottom Left Highlight Color",
@@ -1670,7 +1779,7 @@
 
     const rows = state.counters.map((c, index) => [
       index + 1, Math.max(1, Math.floor(Number(c.quantity) || 1)), c.template || "classic", c.size ?? "", c.bg || "", c.stripeOrientation || "none", c.stripeColor || "#ffffff", c.border || "", c.text || "", Math.max(50, Math.min(200, Number(c.labelTextScale) || 100)), Math.max(50, Math.min(200, Number(c.numberTextScale) || 100)),
-      c.name || "", c.type || "", c.infoText || "", exportedSymbolName(c), c.symbolColor || "#000000", c.natoSidc || "", c.natoFrame ? "Yes" : "No", c.damageExplosion ? "Yes" : "No", c.damageExplosionColor || "#ff8a00",
+      c.name || "", c.type || "", c.infoText || "", exportedSymbolName(c), c.symbolColor || "#000000", c.natoSidc || "", natoUnitSizeLabel(c.natoUnitSize || ""), c.natoFrame ? "Yes" : "No", c.damageExplosion ? "Yes" : "No", c.damageExplosionColor || "#ff8a00",
       c.topLeft || "", c.topLeftColor || "#111111", c.topLeftHighlight ? "Yes" : "No", c.topLeftHighlightColor || "",
       c.topRight || "", c.topRightColor || "#111111", c.topRightHighlight ? "Yes" : "No", c.topRightHighlightColor || "",
       c.attack || "", c.attackColor || "#111111", c.attackHighlight ? "Yes" : "No", c.attackHighlightColor || "",
@@ -1886,6 +1995,7 @@
     if (has("Symbol Color")) c.symbolColor = csvColor(get("Symbol Color"), c.symbolColor || "#000000");
 
     if (has("NATO SIDC")) c.natoSidc = String(get("NATO SIDC") ?? "").trim() || c.natoSidc || "SFGPUCI-----";
+    if (has("NATO Unit Size")) c.natoUnitSize = normalizeNatoUnitSize(get("NATO Unit Size"), c.natoUnitSize || "");
     if (has("NATO Frame")) c.natoFrame = csvBool(get("NATO Frame"), !!c.natoFrame);
     if (has("Damage Explosion")) c.damageExplosion = csvBool(get("Damage Explosion"), !!c.damageExplosion);
     if (has("Damage Explosion Color")) c.damageExplosionColor = csvColor(get("Damage Explosion Color"), c.damageExplosionColor || "#ff8a00");
@@ -2038,6 +2148,8 @@
           if (migrated.natoSidc) c.back.natoSidc = migrated.natoSidc;
         }
 
+        c.natoUnitSize = normalizeNatoUnitSize(c.natoUnitSize, "");
+        if (c.back) c.back.natoUnitSize = normalizeNatoUnitSize(c.back.natoUnitSize, "");
         if (!c.template) c.template = "classic";
         if (c.infoText == null) c.infoText = "";
         if (c.topLeft == null) c.topLeft = "";
@@ -2863,11 +2975,33 @@
 
     function drawSymbol(cx, cy, maxW, maxH) {
       if (!symbol) return;
-      const ratio = Math.min(maxW / symbol.width, maxH / symbol.height);
+      const echelonMark = (c.symbol === "nato") ? natoUnitSizeMark(c.natoUnitSize || "") : "";
+      const template = c.template || "classic";
+      const echelonFontPx = echelonMark
+        ? Math.max(6, size * (template === "largeShip" ? 0.068 : template === "sixValue" ? 0.078 : 0.082))
+        : 0;
+      const echelonGap = echelonMark ? Math.max(2, echelonFontPx * 0.10) : 0;
+      const reservedTop = echelonMark ? (echelonFontPx + echelonGap) : 0;
+      const symbolMaxH = Math.max(4, maxH - reservedTop);
+      const ratio = Math.min(maxW / symbol.width, symbolMaxH / symbol.height);
       const w = symbol.width * ratio;
       const h = symbol.height * ratio;
-      if (c.damageExplosion) drawDamageExplosion(ctx, cx, cy, w * 1.18, h * 1.18, c.damageExplosionColor || "#ff8a00");
-      ctx.drawImage(symbol, cx - w/2, cy - h/2, w, h);
+      const symbolCy = echelonMark ? (cy + reservedTop * 0.46) : cy;
+
+      if (c.damageExplosion) drawDamageExplosion(ctx, cx, symbolCy, w * 1.18, h * 1.18, c.damageExplosionColor || "#ff8a00");
+      ctx.drawImage(symbol, cx - w/2, symbolCy - h/2, w, h);
+
+      if (echelonMark) {
+        ctx.save();
+        ctx.fillStyle = c.symbolColor || "#000000";
+        ctx.font = `700 ${echelonFontPx}px Arial, sans-serif`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        const symbolAreaTop = cy - maxH / 2;
+        const markY = symbolAreaTop + Math.max(1, echelonFontPx * 0.02);
+        ctx.fillText(echelonMark, cx, markY);
+        ctx.restore();
+      }
     }
 
     function fittedFontPx(text, desiredPx, maxWidth, weight="700", minPx=4) {

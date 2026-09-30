@@ -1,6 +1,6 @@
-# Wargame Counter Creator 1.0
+# Wargame Counter Creator 1.3
 
-## Release 1.0
+## Release 1.3
 
 This is the first production release of **Wargame Counter Creator** by **Starfall Works**. Release 1.0 establishes the current feature set as the stable baseline for future development.
 
@@ -739,3 +739,22 @@ This avoids the large card-style browser introduced in v0.43 and keeps the desig
 
 ### Search catalog
 The built-in friendly-name catalog covers common combat, combat support, service support, command and aviation unit types. Direct SIDC entry remains available for any additional APP-6 symbol supported by milsymbol.
+
+
+### New in 1.1
+- Added **NATO unit size / echelon designation** support for NATO / APP-6 counters.
+- Unit size options include Team/Crew, Squad, Section, Platoon, Company, Battalion, Regiment/Group, Brigade, Division, Corps, Army and Army Group/Front.
+- The echelon mark appears above the NATO unit symbol in the on-screen designer, general PDF export and Superior POD export.
+- CSV import/export now supports a **NATO Unit Size** column.
+
+
+### New in 1.2
+- Fixed NATO echelon marks being clipped at the top of the counter.
+- NATO symbols and their echelon marks now use a managed vertical stack so the unit-size mark remains fully visible.
+- When a NATO frame is enabled, the symbol/frame is shifted downward enough to prevent overlap with the echelon mark.
+- The same spacing rules are used in screen preview, General PDF and Superior POD output.
+
+
+### New in 1.3
+- Fixed **Army Group / Front** echelon selection so `XXXXX` is retained and rendered correctly.
+- NATO unit size is now preserved when copying a counter face to the back and when normalizing/loading two-sided projects.
